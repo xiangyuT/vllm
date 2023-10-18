@@ -15,6 +15,7 @@ from vllm.sequence import SamplerOutput, SequenceData, SequenceGroupMetadata
 from vllm.worker.cache_engine import CacheEngine
 from vllm.utils import get_gpu_memory, get_max_shared_memory_bytes
 
+import pdb
 
 class Worker:
     """A worker class that executes (a partition of) the model on a GPU.
@@ -46,6 +47,8 @@ class Worker:
         self.cache_engine = None
         self.cache_events = None
         self.gpu_cache = None
+
+        self.kv_cache = dict()
 
     def init_model(self):
         # This env var set by Ray causes exceptions with graph building.
@@ -185,25 +188,25 @@ class Worker:
             # is always the first token in the sequence.
             input_positions.extend(range(len(prompt_tokens)))
 
-            if seq_group_metadata.block_tables is None:
-                # During memory profiling, the block tables are not initialized
-                # yet. In this case, we just use a dummy slot mapping.
-                slot_mapping.extend([0] * prompt_len)
-                continue
+            # if seq_group_metadata.block_tables is None:
+            #     # During memory profiling, the block tables are not initialized
+            #     # yet. In this case, we just use a dummy slot mapping.
+            #     slot_mapping.extend([0] * prompt_len)
+            #     continue
 
-            # Compute the slot mapping.
-            block_table = seq_group_metadata.block_tables[seq_id]
-            for i in range(prompt_len):
-                block_number = block_table[i // self.block_size]
-                block_offset = i % self.block_size
-                slot = block_number * self.block_size + block_offset
-                slot_mapping.append(slot)
+            # # Compute the slot mapping.
+            # block_table = seq_group_metadata.block_tables[seq_id]
+            # for i in range(prompt_len):
+            #     block_number = block_table[i // self.block_size]
+            #     block_offset = i % self.block_size
+            #     slot = block_number * self.block_size + block_offset
+            #     slot_mapping.append(slot)
 
         # Add generation tokens.
         max_context_len = 0
         max_num_blocks_per_seq = 0
         context_lens: List[int] = []
-        generation_block_tables: List[List[int]] = []
+        # generation_block_tables: List[List[int]] = []
         for seq_group_metadata in seq_group_metadata_list:
             if seq_group_metadata.is_prompt:
                 continue
@@ -223,23 +226,23 @@ class Worker:
                     context_len = min(context_len, self.sliding_window)
                 input_positions.append(position)
 
-                block_table = seq_group_metadata.block_tables[seq_id]
+                # block_table = seq_group_metadata.block_tables[seq_id]
 
                 max_context_len = max(max_context_len, context_len)
                 max_num_blocks_per_seq = max(max_num_blocks_per_seq,
                                              len(block_table))
                 context_lens.append(context_len)
 
-                block_number = block_table[position // self.block_size]
-                block_offset = position % self.block_size
-                slot = block_number * self.block_size + block_offset
-                slot_mapping.append(slot)
+                # block_number = block_table[position // self.block_size]
+                # block_offset = position % self.block_size
+                # slot = block_number * self.block_size + block_offset
+                # slot_mapping.append(slot)
 
                 if self.sliding_window is not None:
                     sliding_window_blocks = (self.sliding_window //
                                              self.block_size)
                     block_table = block_table[-sliding_window_blocks:]
-                generation_block_tables.append(block_table)
+                # generation_block_tables.append(block_table)
 
         # Optimization: Pad the input length to be a multiple of 8.
         # This is required for utilizing the Tensor Cores in NVIDIA GPUs.
@@ -253,19 +256,19 @@ class Worker:
         positions_tensor = torch.tensor(input_positions,
                                         dtype=torch.long,
                                         device="cuda")
-        slot_mapping_tensor = torch.tensor(slot_mapping,
-                                           dtype=torch.int,
-                                           device="cuda")
+        # slot_mapping_tensor = torch.tensor(slot_mapping,
+        #                                    dtype=torch.int,
+        #                                    device="cuda")
         context_lens_tensor = torch.tensor(context_lens,
                                            dtype=torch.int,
                                            device="cuda")
-        padded_block_tables = [
-            _pad_to_max(block_table, max_num_blocks_per_seq)
-            for block_table in generation_block_tables
-        ]
-        block_tables_tensor = torch.tensor(padded_block_tables,
-                                           dtype=torch.int,
-                                           device="cuda")
+        # padded_block_tables = [
+        #     _pad_to_max(block_table, max_num_blocks_per_seq)
+        #     for block_table in generation_block_tables
+        # ]
+        # block_tables_tensor = torch.tensor(padded_block_tables,
+        #                                    dtype=torch.int,
+        #                                    device="cuda")
 
         seq_data: Dict[int, SequenceData] = {}
         for seq_group_metadata in seq_group_metadata_list:
@@ -275,10 +278,10 @@ class Worker:
             seq_groups=seq_groups,
             seq_data=seq_data,
             prompt_lens=prompt_lens,
-            slot_mapping=slot_mapping_tensor,
+            # slot_mapping=slot_mapping_tensor,
             context_lens=context_lens_tensor,
             max_context_len=max_context_len,
-            block_tables=block_tables_tensor,
+            # block_tables=block_tables_tensor,
             sliding_window=self.sliding_window,
         )
         return tokens_tensor, positions_tensor, input_metadata
@@ -292,22 +295,22 @@ class Worker:
         blocks_to_copy: Dict[int, List[int]],
     ) -> SamplerOutput:
         # Issue cache operations.
-        issued_cache_op = False
-        if blocks_to_swap_in:
-            self.cache_engine.swap_in(blocks_to_swap_in)
-            issued_cache_op = True
-        if blocks_to_swap_out:
-            self.cache_engine.swap_out(blocks_to_swap_out)
-            issued_cache_op = True
-        if blocks_to_copy:
-            self.cache_engine.copy(blocks_to_copy)
-            issued_cache_op = True
+        # issued_cache_op = False
+        # if blocks_to_swap_in:
+        #     self.cache_engine.swap_in(blocks_to_swap_in)
+        #     issued_cache_op = True
+        # if blocks_to_swap_out:
+        #     self.cache_engine.swap_out(blocks_to_swap_out)
+        #     issued_cache_op = True
+        # if blocks_to_copy:
+        #     self.cache_engine.copy(blocks_to_copy)
+        #     issued_cache_op = True
 
-        if issued_cache_op:
-            cache_events = self.cache_events
-        else:
-            cache_events = None
-
+        # if issued_cache_op:
+        #     cache_events = self.cache_events
+        # else:
+        #     cache_events = None
+        cache_events = None
         # If there is no input, we don't need to execute the model.
         if not seq_group_metadata_list:
             if cache_events is not None:
@@ -315,18 +318,24 @@ class Worker:
                     event.wait()
             return {}
 
-        # Prepare input tensors.
-        input_tokens, input_positions, input_metadata = self._prepare_inputs(
-            seq_group_metadata_list)
+        # pdb.set_trace()
+        #TODO: use environment/global virable to check
+        if True :
+            output = self.model(seq_group_meta_data_lists = seq_group_metadata_list, kv_cache = self.kv_cache)
+            return output
+        else:
+            # Prepare input tensors.
+            input_tokens, input_positions, input_metadata = self._prepare_inputs(
+                seq_group_metadata_list)
 
-        # Execute the model.
-        output = self.model(
-            input_ids=input_tokens,
-            positions=input_positions,
-            kv_caches=self.gpu_cache,
-            input_metadata=input_metadata,
-            cache_events=cache_events,
-        )
+            # Execute the model.
+            output = self.model(
+                input_ids=input_tokens,
+                positions=input_positions,
+                kv_caches=None,
+                input_metadata=input_metadata,
+                cache_events=cache_events,
+            )
         return output
 
 
