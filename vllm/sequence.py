@@ -121,7 +121,8 @@ class Sequence:
 
         self.logical_token_blocks: List[LogicalTokenBlock] = []
         # Initialize the logical token blocks with the prompt token ids.
-        self._append_tokens_to_blocks(prompt_token_ids)
+        # Co(gc): not append tokens to blocks
+        #self._append_tokens_to_blocks(prompt_token_ids)
         self.status = SequenceStatus.WAITING
 
         # Used for incremental detokenization
@@ -137,6 +138,7 @@ class Sequence:
         )
         self.logical_token_blocks.append(block)
 
+    # Co(gc): we should disable all the calls to this function
     def _append_tokens_to_blocks(self, token_ids: List[int]) -> None:
         cursor = 0
         while cursor < len(token_ids):
@@ -159,7 +161,7 @@ class Sequence:
         logprobs: Dict[int, float],
     ) -> None:
         assert token_id in logprobs
-        self._append_tokens_to_blocks([token_id])
+        #self._append_tokens_to_blocks([token_id])
         self.output_logprobs.append(logprobs)
         self.data.append_token_id(token_id, logprobs[token_id])
 

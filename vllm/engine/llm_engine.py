@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Tuple, Union
 
 from vllm.config import (CacheConfig, ModelConfig, ParallelConfig,
                          SchedulerConfig)
-from vllm.core.scheduler import Scheduler, SchedulerOutputs
+from vllm.core.scheduler import Scheduler, SchedulerOutputs, FixedWindowScheduler
 from vllm.engine.arg_utils import EngineArgs
 from vllm.engine.ray_utils import RayWorker, initialize_cluster, ray
 from vllm.logger import init_logger
@@ -88,8 +88,9 @@ class LLMEngine:
 
         self.model_config = model_config
         self.cache_config = cache_config
-        assert self.cache_config.sliding_window == getattr(
-            self.model_config.hf_config, "sliding_window", None)
+        # Co(gc): As we have disabled cache_config, there is no meaning for this assert
+        # assert self.cache_config.sliding_window == getattr(
+        #     self.model_config.hf_config, "sliding_window", None)
         self.parallel_config = parallel_config
         self.scheduler_config = scheduler_config
         self.log_stats = log_stats
@@ -110,10 +111,10 @@ class LLMEngine:
             self._init_workers(distributed_init_method)
 
         # Profile the memory usage and initialize the cache.
-        self._init_cache()
+        # self._init_cache()
 
         # Create the scheduler.
-        self.scheduler = Scheduler(scheduler_config, cache_config)
+        self.scheduler = FixedWindowScheduler(scheduler_config, cache_config)
 
         # Logging.
         self.last_logging_time = 0.0
@@ -185,7 +186,8 @@ class LLMEngine:
 
     def _verify_args(self) -> None:
         self.model_config.verify_with_parallel_config(self.parallel_config)
-        self.cache_config.verify_with_parallel_config(self.parallel_config)
+        # Co(gc): this simply checks if the swap is too large or not
+        # self.cache_config.verify_with_parallel_config(self.parallel_config)
 
     def _init_cache(self) -> None:
         """Profiles the memory usage and initializes the KV cache."""
@@ -359,24 +361,30 @@ class LLMEngine:
             parent_seq.seq_id: []
             for parent_seq in parent_seqs
         }
+        # parent_child_dict = {seq_id: [SampleOutputs]}
         for sample in samples:
             parent_child_dict[sample.parent_seq_id].append(sample)
         # List of (child, parent)
         child_seqs: List[Tuple[Sequence, Sequence]] = []
 
         # Process the child samples for each parent sequence
+        # For each child samples, create a sequence, and add it the child_seqs
         for parent in parent_seqs:
+            # Get all the child_samples, SequenceOuptuts
             child_samples: List[SequenceOutputs] = parent_child_dict[
                 parent.seq_id]
+            # We do not have any SequenceOutputs
             if len(child_samples) == 0:
                 # This parent sequence has no children samples. Remove
                 # the parent sequence from the sequence group since it will
                 # not be used in the future iterations.
                 parent.status = SequenceStatus.FINISHED_ABORTED
                 seq_group.remove(parent.seq_id)
-                self.scheduler.free_seq(parent)
+                # TODO(gc): Should we do anything special in this case?
+                # self.scheduler.free_seq(parent)
                 continue
             # Fork the parent sequence if there are multiple child samples.
+            # The outputs diverges, we need to fork the requests
             for child_sample in child_samples[:-1]:
                 new_child_seq_id = next(self.seq_counter)
                 child = parent.fork(new_child_seq_id)
@@ -396,6 +404,7 @@ class LLMEngine:
             self._check_stop(seq, seq_group.sampling_params)
 
         # Non-beam search case
+        # We probably use sampling
         if not seq_group.sampling_params.use_beam_search:
             # For newly created child sequences, add them to the sequence group
             # and fork them in block manager if they are not finished.
@@ -403,7 +412,8 @@ class LLMEngine:
                 if seq is not parent:
                     seq_group.add(seq)
                     if not seq.is_finished():
-                        self.scheduler.fork_seq(parent, seq)
+                        pass
+                        #self.scheduler.fork_seq(parent, seq)
 
             # Free the finished and selected parent sequences' memory in block
             # manager. Keep them in the sequence group as candidate output.
@@ -411,7 +421,8 @@ class LLMEngine:
             # old sequences.
             for seq, parent in child_seqs:
                 if seq is parent and seq.is_finished():
-                    self.scheduler.free_seq(seq)
+                    #self.scheduler.free_seq(seq)
+                    pass
             return
 
         # Beam search case
@@ -439,6 +450,7 @@ class LLMEngine:
                 # A newly generated child sequence finishes and has a high
                 # score, so we will add it into the sequence group.
                 selected_child_seqs.append((seq, parent))
+            # For existing seqs, it should have already in the seq_group
         for seq, parent, is_new in all_finished_seqs[beam_width:]:
             if is_new:
                 # A newly generated child sequence finishes but has a low
@@ -452,9 +464,11 @@ class LLMEngine:
                 # remove it from the sequence group.
                 seq_group.remove(seq.seq_id)
 
+        # We need to decide which one should continue, for the running one
         # select the top beam_width sequences from the running
         # sequences for the next iteration to continue the beam
         # search.
+        # We only need to run beam_width - # of already finished sequences.
         running_child_seqs = [(seq, parent) for seq, parent in child_seqs
                               if not seq.is_finished()]
         # Sort the running sequences by their scores.
@@ -498,13 +512,15 @@ class LLMEngine:
             if seq is not parent:
                 seq_group.add(seq)
                 if not seq.is_finished():
-                    self.scheduler.fork_seq(parent, seq)
+                    pass
+                    #self.scheduler.fork_seq(parent, seq)
 
         # Free the finished and selected parent sequences' memory in block
         # manager. Keep them in the sequence group as candidate output.
         for seq, parent in selected_child_seqs:
             if seq is parent and seq.is_finished():
-                self.scheduler.free_seq(seq)
+                #self.scheduler.free_seq(seq)
+                pass
 
         # Remove the unselected parent sequences from the sequence group and
         # free their memory in block manager.
@@ -513,7 +529,7 @@ class LLMEngine:
                 # Remove the parent sequence if it is not selected for next
                 # iteration
                 seq_group.remove(seq.seq_id)
-                self.scheduler.free_seq(seq)
+                #self.scheduler.free_seq(seq)
 
     def _process_model_outputs(
             self, output: SamplerOutput,
