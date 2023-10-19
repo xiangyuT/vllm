@@ -110,7 +110,11 @@ class LLMEngine:
         else:
             self._init_workers(distributed_init_method)
 
+<<<<<<< HEAD
         # Profile the memory usage and initialize the cache.
+=======
+        # # Profile the memory usage and initialize the cache.
+>>>>>>> 02b4cac... Add BigDL Llama worker for batching on decoding (#4)
         # self._init_cache()
 
         # Create the scheduler.
