@@ -12,6 +12,29 @@ import math
 
 import pdb
 
+from transformers.generation.logits_process import (
+    LogitsProcessorList,
+    RepetitionPenaltyLogitsProcessor,
+    TemperatureLogitsWarper,
+    TopKLogitsWarper,
+    TopPLogitsWarper,
+)
+
+def prepare_logits_processor(
+    temperature: float, repetition_penalty: float, top_p: float, top_k: int
+) -> LogitsProcessorList:
+    processor_list = LogitsProcessorList()
+    # TemperatureLogitsWarper doesn't accept 0.0, 1.0 makes it a no-op so we skip two cases.
+    if temperature >= 1e-5 and temperature != 1.0:
+        processor_list.append(TemperatureLogitsWarper(temperature))
+    # if repetition_penalty > 1.0:
+    #     processor_list.append(RepetitionPenaltyLogitsProcessor(repetition_penalty))
+    if 1e-8 <= top_p < 1.0:
+        processor_list.append(TopPLogitsWarper(top_p))
+    if top_k > 0:
+        processor_list.append(TopKLogitsWarper(top_k))
+    return processor_list
+
 class BigDLLlamaForCausalLM(nn.Module):
     def __init__(
         self,
@@ -43,6 +66,7 @@ class BigDLLlamaForCausalLM(nn.Module):
         bigdl_input_ids = []
         bigdl_position_ids = []
         cur_seq_ids = []
+        bigdl_sampling_params = {}
         
         all_decoding = True
         for seq_group_meta_data in seq_group_meta_data_lists:
@@ -57,6 +81,8 @@ class BigDLLlamaForCausalLM(nn.Module):
             cur_seq_input_ids = seq_data.get_token_ids()
             bigdl_input_ids.append(cur_seq_input_ids)
             
+            bigdl_sampling_params[seq_id] = seq_group_meta_data.sampling_params
+
             context_len = seq_data.get_len()
             bigdl_position_ids.append(range(context_len))
         if all_decoding: 
@@ -88,7 +114,13 @@ class BigDLLlamaForCausalLM(nn.Module):
         index = 0
         bigdl_output = []
         for seq_id in cur_seq_ids:
-            last_token_logits = outputs.logits[index, -1, :]
+            cur_sampling_params = bigdl_sampling_params[seq_id]
+            logits_processor = prepare_logits_processor(
+                cur_sampling_params.temperature, 1,
+                cur_sampling_params.top_p, cur_sampling_params.top_k
+            )
+    
+            last_token_logits = logits_processor(None, outputs.logits[index:index+1, -1, :])[0]
             probs = torch.softmax(last_token_logits, dim=-1)
             indices = torch.multinomial(probs, num_samples=2)
             tokens = [int(token) for token in indices.tolist()]
