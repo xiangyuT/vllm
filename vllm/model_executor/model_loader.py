@@ -23,7 +23,7 @@ _MODEL_REGISTRY = {
     "GPTJForCausalLM": GPTJForCausalLM,
     "GPTNeoXForCausalLM": GPTNeoXForCausalLM,
     "InternLMForCausalLM": InternLMForCausalLM,
-    "LlamaForCausalLM": LlamaForCausalLM,
+    "LlamaForCausalLM": BigDLLlamaForCausalLM,
     "LLaMAForCausalLM": LlamaForCausalLM,  # For decapoda-research/llama-*
     "MistralForCausalLM": MistralForCausalLM,
     "MPTForCausalLM": MPTForCausalLM,
