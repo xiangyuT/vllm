@@ -447,10 +447,10 @@ class FixedWindowScheduler:
                         return
 
     def has_unfinished_seqs(self) -> bool:
-        return self.waiting or self.running or self.swapped
+        return self.waiting or self.running
 
     def get_num_unfinished_seq_groups(self) -> int:
-        return len(self.waiting) + len(self.running) + len(self.swapped)
+        return len(self.waiting) + len(self.running)
 
     def _schedule(self) -> SchedulerOutputs:
 
@@ -465,58 +465,83 @@ class FixedWindowScheduler:
                             for seq_group in self.running)
         num_batched_tokens = 0
 
-        # We restrict how many requests that can be run using these three arguments
-        # Co(gc): If there are waiting requests, we will just try to add it into the running state if not exceeds the stage
-        while self.waiting:
-            seq_group = self.waiting[0]
+        if self.waiting:
+            # We restrict how many requests that can be run using these three arguments
+            # Co(gc): If there are waiting requests, we will just try to add it into the running state if not exceeds the stage
+            # Co(gc): prefilled requests are prioritied over decoding stage requests
+            while self.waiting:
+                seq_group = self.waiting[0]
 
-            assert seq_group.num_seqs() == 1, (
-                "Waiting sequence group should have only one prompt "
-                "sequence.")
-            num_prompt_tokens = seq_group.get_seqs()[0].get_len()
-            if num_prompt_tokens > self.prompt_limit:
-                logger.warning(
-                    f"Input prompt ({num_prompt_tokens} tokens) is too long"
-                    f" and exceeds limit of {self.prompt_limit}")
+                assert seq_group.num_seqs() == 1, (
+                    "Waiting sequence group should have only one prompt "
+                    "sequence.")
+                num_prompt_tokens = seq_group.get_seqs()[0].get_len()
+                if num_prompt_tokens > self.prompt_limit:
+                    logger.warning(
+                        f"Input prompt ({num_prompt_tokens} tokens) is too long"
+                        f" and exceeds limit of {self.prompt_limit}")
+                    for seq in seq_group.get_seqs():
+                        seq.status = SequenceStatus.FINISHED_IGNORED
+                    ignored_seq_groups.append(seq_group)
+                    self.waiting.pop(0)
+                    continue
+
+                # If the sequence group cannot be allocated, stop.
+                # if not self.block_manager.can_allocate(seq_group):
+                #     break
+
+                # If the number of batched tokens exceeds the limit, stop.
+                if (num_batched_tokens + num_prompt_tokens >
+                        self.scheduler_config.max_num_batched_tokens):
+                    break
+
+                # The total number of sequences in the RUNNING state should not
+                # exceed the maximum number of sequences.
+                num_new_seqs = seq_group.get_max_num_running_seqs()
+                if (num_curr_seqs + num_new_seqs >
+                        self.scheduler_config.max_num_seqs):
+                    break
+
+                seq_group = self.waiting.pop(0)
                 for seq in seq_group.get_seqs():
-                    seq.status = SequenceStatus.FINISHED_IGNORED
-                ignored_seq_groups.append(seq_group)
-                self.waiting.pop(0)
-                continue
+                    seq.status = SequenceStatus.RUNNING
+                #self._allocate(seq_group)
+                self.running.append(seq_group)
+                num_batched_tokens += num_prompt_tokens
+                num_curr_seqs += num_new_seqs
+                scheduled.append(seq_group)
 
-            # If the sequence group cannot be allocated, stop.
-            # if not self.block_manager.can_allocate(seq_group):
-            #     break
+                print("We have waited sequence_groups")
 
-            # If the number of batched tokens exceeds the limit, stop.
-            if (num_batched_tokens + num_prompt_tokens >
-                    self.scheduler_config.max_num_batched_tokens):
-                break
+            scheduler_outputs = SchedulerOutputs(
+                scheduled_seq_groups=scheduled,
+                prompt_run=True,
+                num_batched_tokens=num_batched_tokens,
+                blocks_to_swap_in={},
+                blocks_to_swap_out={},
+                blocks_to_copy={},
+                ignored_seq_groups=ignored_seq_groups,
+            )
+            return scheduler_outputs
 
-            # The total number of sequences in the RUNNING state should not
-            # exceed the maximum number of sequences.
-            num_new_seqs = seq_group.get_max_num_running_seqs()
-            if (num_curr_seqs + num_new_seqs >
-                    self.scheduler_config.max_num_seqs):
-                break
+        # Now consider all the requests in decoding stage
+        self.running = self.policy.sort_by_priority(now, self.running)
 
-            seq_group = self.waiting.pop(0)
-            for seq in seq_group.get_seqs():
-                seq.status = SequenceStatus.RUNNING
-            #self._allocate(seq_group)
-            self.running.append(seq_group)
-            num_batched_tokens += num_prompt_tokens
-            num_curr_seqs += num_new_seqs
-            scheduled.append(seq_group)
+        # Each sequence in the generation phase only takes one token slot.
+        # Therefore, the number of batched tokens is equal to the number of
+        # sequences in the RUNNING state.
+        num_batched_tokens = sum(
+            seq_group.num_seqs(status=SequenceStatus.RUNNING)
+            for seq_group in self.running)
 
         scheduler_outputs = SchedulerOutputs(
-            scheduled_seq_groups=scheduled,
-            prompt_run=True,
+            scheduled_seq_groups=self.running,
+            prompt_run=False,
             num_batched_tokens=num_batched_tokens,
             blocks_to_swap_in={},
             blocks_to_swap_out={},
             blocks_to_copy={},
-            ignored_seq_groups=ignored_seq_groups,
+            ignored_seq_groups=[],
         )
         return scheduler_outputs
 
@@ -557,6 +582,10 @@ class FixedWindowScheduler:
         self.block_manager.free(seq)
 
     def free_finished_seq_groups(self) -> None:
+        for seq_group in self.running:
+            if seq_group.is_finished():
+                print("A finished seq_group")
+                print(seq_group)
         self.running = [
             seq_group for seq_group in self.running
             if not seq_group.is_finished()

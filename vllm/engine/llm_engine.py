@@ -25,6 +25,10 @@ if ray:
 if TYPE_CHECKING:
     from ray.util.placement_group import PlacementGroup
 
+import logging
+
+logging.basicConfig(level=logging.INFO)
+
 logger = init_logger(__name__)
 
 _LOGGING_INTERVAL_SEC = 5
@@ -110,11 +114,7 @@ class LLMEngine:
         else:
             self._init_workers(distributed_init_method)
 
-<<<<<<< HEAD
         # Profile the memory usage and initialize the cache.
-=======
-        # # Profile the memory usage and initialize the cache.
->>>>>>> 02b4cac... Add BigDL Llama worker for batching on decoding (#4)
         # self._init_cache()
 
         # Create the scheduler.
@@ -539,10 +539,16 @@ class LLMEngine:
             self, output: SamplerOutput,
             scheduler_outputs: SchedulerOutputs) -> List[RequestOutput]:
         # Update the scheduled sequence groups with the model outputs.
+        # Try print SamplerOutput
+        for list_of_sequence_output in output:
+            # List of SequenceOutputs
+            for seq_output in list_of_sequence_output:
+                print(seq_output.output_token)
         scheduled_seq_groups = scheduler_outputs.scheduled_seq_groups
         for seq_group, samples in zip(scheduled_seq_groups, output):
             self._process_sequence_group_samples(seq_group, samples)
 
+        print("after _process_sequence_group_samples")
         # Free the finished sequence groups.
         self.scheduler.free_finished_seq_groups()
 
@@ -552,11 +558,12 @@ class LLMEngine:
                           scheduler_outputs.ignored_seq_groups):
             request_output = RequestOutput.from_seq_group(seq_group)
             request_outputs.append(request_output)
+        print("After generating request_outputs")
 
-        if self.log_stats:
-            # Log the system stats.
-            self._log_system_stats(scheduler_outputs.prompt_run,
-                                   scheduler_outputs.num_batched_tokens)
+        # if self.log_stats:
+        #     # Log the system stats.
+        #     self._log_system_stats(scheduler_outputs.prompt_run,
+        #                            scheduler_outputs.num_batched_tokens)
         return request_outputs
 
     def step(self) -> List[RequestOutput]:
