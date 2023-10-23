@@ -366,6 +366,7 @@ def _init_distributed_environment(
 
     # A small all_reduce for warmup.
     torch.distributed.all_reduce(torch.zeros(1).cuda())
+    # gc-TODO: consider this later
     initialize_model_parallel(parallel_config.tensor_parallel_size,
                               parallel_config.pipeline_parallel_size)
 
