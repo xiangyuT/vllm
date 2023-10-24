@@ -100,5 +100,7 @@ def get_model(model_config: ModelConfig) -> nn.Module:
             # Load the weights from the cached or downloaded files.
             model.load_weights(model_config.model, model_config.download_dir,
                                model_config.load_format, model_config.revision)
-            model = model.cuda()
+            # TODO(xiangyu): Modify condition
+            if False:
+                model = model.cuda()
     return model.eval()

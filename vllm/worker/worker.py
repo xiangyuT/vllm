@@ -51,22 +51,24 @@ class Worker:
         self.kv_cache = dict()
 
     def init_model(self):
-        # This env var set by Ray causes exceptions with graph building.
-        os.environ.pop("NCCL_ASYNC_ERROR_HANDLING", None)
-        # Env vars will be set by Ray.
-        self.rank = self.rank if self.rank is not None else int(
-            os.getenv("RANK", "-1"))
-        local_rank = int(os.getenv("LOCAL_RANK", "0"))
-        self.device = torch.device(f"cuda:{local_rank}")
-        if self.rank < 0:
-            raise ValueError("Invalid or unspecified rank.")
-        torch.cuda.set_device(self.device)
+        # TODO(xiangyu): Modify condition
+        if False:
+            # This env var set by Ray causes exceptions with graph building.
+            os.environ.pop("NCCL_ASYNC_ERROR_HANDLING", None)
+            # Env vars will be set by Ray.
+            self.rank = self.rank if self.rank is not None else int(
+                os.getenv("RANK", "-1"))
+            local_rank = int(os.getenv("LOCAL_RANK", "0"))
+            self.device = torch.device(f"cuda:{local_rank}")
+            if self.rank < 0:
+                raise ValueError("Invalid or unspecified rank.")
+            torch.cuda.set_device(self.device)
 
-        _check_if_gpu_supports_dtype(self.model_config.dtype)
+            _check_if_gpu_supports_dtype(self.model_config.dtype)
 
-        # Initialize the distributed environment.
-        _init_distributed_environment(self.parallel_config, self.rank,
-                                      self.distributed_init_method)
+            # Initialize the distributed environment.
+            _init_distributed_environment(self.parallel_config, self.rank,
+                                        self.distributed_init_method)
 
         # Initialize the model.
         set_random_seed(self.model_config.seed)
