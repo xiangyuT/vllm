@@ -77,7 +77,6 @@ class BigDLLlamaForCausalLM(nn.Module):
             all_decoding = all_decoding and (not seq_group_meta_data.is_prompt)
             seq_ids = list(seq_group_meta_data.seq_data.keys())
             seq_id = seq_ids[0]
-            print(seq_id)
             cur_seq_ids.append(seq_id)
             seq_data = seq_group_meta_data.seq_data[seq_id]
             
@@ -134,7 +133,6 @@ class BigDLLlamaForCausalLM(nn.Module):
             )
     
             last_token_logits = logits_processor(None, outputs.logits[index:index+1, -1, :])[0]
-            print(last_token_logits)
             probs = torch.softmax(last_token_logits, dim=-1)
             indices = torch.multinomial(probs, num_samples=2)
             tokens = [int(token) for token in indices.tolist()]
@@ -158,8 +156,8 @@ class BigDLLlamaForCausalLM(nn.Module):
         return bigdl_output
 
     def load_weights(self,
-                model_name_or_path: str,
-                cache_dir: Optional[str] = None,
-                load_format: str = "auto",
-                revision: Optional[str] = None):
+                    model_name_or_path: str,
+                    cache_dir: Optional[str] = None,
+                    load_format: str = "auto",
+                    revision: Optional[str] = None):
         pass
