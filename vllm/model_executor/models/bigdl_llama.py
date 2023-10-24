@@ -48,6 +48,7 @@ class BigDLLlamaForCausalLM(nn.Module):
         self.tokenizer = AutoTokenizer.from_pretrained(config._name_or_path)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.dtype = self.model.config.torch_dtype
+        # self.tmp_kv_cache = []
 
     def decode(self, generated_ids: List[int]) -> str:
         return self.tokenizer.decode(
@@ -76,7 +77,6 @@ class BigDLLlamaForCausalLM(nn.Module):
             all_decoding = all_decoding and (not seq_group_meta_data.is_prompt)
             seq_ids = list(seq_group_meta_data.seq_data.keys())
             seq_id = seq_ids[0]
-            print(seq_id)
             cur_seq_ids.append(seq_id)
             seq_data = seq_group_meta_data.seq_data[seq_id]
             
@@ -93,9 +93,13 @@ class BigDLLlamaForCausalLM(nn.Module):
             for seq_group_meta_data in seq_group_meta_data_lists:
                 seq_ids = list(seq_group_meta_data.seq_data.keys())
                 seq_id = seq_ids[0]
+                if kv_cache.get(seq_id) is None:
+                    continue
                 for i in range(kv_cache_0):
                     for j in range(kv_cache_1):
-                        bigdl_kv_cache[i][j] = torch.cat((bigdl_kv_cache[i][j], kv_cache[seq_id][i][j]), dim=0).to(dtype = self.dtype)
+                        target_size = (bigdl_kv_cache[i][j].size(0) + kv_cache[seq_id][i][j].size(0),) + kv_cache[seq_id][i][j].size()[1:]
+                        bigdl_kv_cache[i][j].resize_(target_size)
+                        bigdl_kv_cache[i][j][-kv_cache[seq_id][i][j].size(0):] = kv_cache[seq_id][i][j]
             
         bigdl_input_ids = torch.tensor(bigdl_input_ids, device=self.device)
         bigdl_position_ids = torch.tensor(bigdl_position_ids, device=self.device)
@@ -115,12 +119,13 @@ class BigDLLlamaForCausalLM(nn.Module):
                         "use_cache": True,
                         "return_dict": True,
                     }
-        # kwargs["position_ids"] = position_ids
         # pdb.set_trace()
         outputs = self.model.forward(**kwargs)
+        # self.tmp_kv_cache = outputs.past_key_values
         index = 0
         bigdl_output = []
         for seq_id in cur_seq_ids:
+            # pdb.set_trace()
             cur_sampling_params = bigdl_sampling_params[seq_id]
             logits_processor = prepare_logits_processor(
                 cur_sampling_params.temperature, 1,
@@ -143,16 +148,16 @@ class BigDLLlamaForCausalLM(nn.Module):
                 kv_cache[seq_id] = [[[] for _ in range(kv_cache_1)] for _ in range(kv_cache_0)]
             for i in range(kv_cache_0):
                 for j in range(kv_cache_1):
-                    kv_cache[seq_id][i][j] = outputs.past_key_values[i][j][index].unsqueeze(0).to(device=self.device,dtype = self.dtype)
+                    kv_cache[seq_id][i][j] = outputs.past_key_values[i][j][index].unsqueeze(0)
             index = index + 1
-
-            #pdb.set_trace()
+            
+        torch.cuda.empty_cache()
 
         return bigdl_output
 
     def load_weights(self,
-                     model_name_or_path: str,
-                     cache_dir: Optional[str] = None,
-                     load_format: str = "auto",
-                     revision: Optional[str] = None):
+                    model_name_or_path: str,
+                    cache_dir: Optional[str] = None,
+                    load_format: str = "auto",
+                    revision: Optional[str] = None):
         pass
