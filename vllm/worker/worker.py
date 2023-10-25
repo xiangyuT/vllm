@@ -17,6 +17,7 @@ from vllm.utils import get_gpu_memory, get_max_shared_memory_bytes
 
 import pdb
 
+
 class Worker:
     """A worker class that executes (a partition of) the model on a GPU.
 
@@ -49,6 +50,17 @@ class Worker:
         self.gpu_cache = None
 
         self.kv_cache = dict()
+
+    def clean_finished_seqs(self, finished_seqs: List[int]):
+        """
+        This function cleans the finished sequences and their KVCache in self.kv_cache
+        """
+        for seq_id in finished_seqs:
+            if seq_id not in self.kv_cache.keys():
+                raise ValueError(
+                    f"Duplicate key {seq_id} received during clean worker's KVCache"
+                )
+            del self.kv_cache[seq_id]
 
     def init_model(self):
         if self.model_config.device != 'cpu':
@@ -294,6 +306,7 @@ class Worker:
         blocks_to_swap_in: Dict[int, int],
         blocks_to_swap_out: Dict[int, int],
         blocks_to_copy: Dict[int, List[int]],
+        finished_seqs: List[int],
     ) -> SamplerOutput:
         # Issue cache operations.
         # issued_cache_op = False
@@ -311,6 +324,9 @@ class Worker:
         #     cache_events = self.cache_events
         # else:
         #     cache_events = None
+        if finished_seqs:
+            self.clean_finished_seqs(finished_seqs)
+
         cache_events = None
         # If there is no input, we don't need to execute the model.
         if not seq_group_metadata_list:
@@ -321,8 +337,10 @@ class Worker:
 
         # pdb.set_trace()
         #TODO: use environment/global virable to check
-        if True :
-            output = self.model(seq_group_meta_data_lists = seq_group_metadata_list, kv_cache = self.kv_cache)
+        if True:
+            output = self.model(
+                seq_group_meta_data_lists=seq_group_metadata_list,
+                kv_cache=self.kv_cache)
             return output
         else:
             # Prepare input tensors.

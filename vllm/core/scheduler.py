@@ -36,6 +36,7 @@ class SchedulerOutputs:
         blocks_to_swap_out: Dict[int, int],
         blocks_to_copy: Dict[int, List[int]],
         ignored_seq_groups: List[SequenceGroup],
+        finished_seqs: List[int],
     ) -> None:
         self.scheduled_seq_groups = scheduled_seq_groups
         self.prompt_run = prompt_run
@@ -46,11 +47,13 @@ class SchedulerOutputs:
         # Swap in and swap out should never happen at the same time.
         assert not (blocks_to_swap_in and blocks_to_swap_out)
         self.ignored_seq_groups = ignored_seq_groups
+        self.finished_seqs = finished_seqs
 
     def is_empty(self) -> bool:
         # NOTE: We do not consider the ignored sequence groups.
         return (not self.scheduled_seq_groups and not self.blocks_to_swap_in
-                and not self.blocks_to_swap_out and not self.blocks_to_copy)
+                and not self.blocks_to_swap_out and not self.blocks_to_copy
+                and not self.finished_seqs)
 
 
 class Scheduler:
@@ -61,7 +64,7 @@ class Scheduler:
         cache_config: CacheConfig,
     ) -> None:
         self.scheduler_config = scheduler_config
-        #self.cache_config = cache_config
+        self.cache_config = cache_config
 
         self.prompt_limit = min(self.scheduler_config.max_model_len,
                                 self.scheduler_config.max_num_batched_tokens)
@@ -69,12 +72,11 @@ class Scheduler:
         # Instantiate the scheduling policy.
         self.policy = PolicyFactory.get_policy(policy_name="fcfs")
         # Create the block space manager.
-        # CO(gc): disable the block_manager
-        # self.block_manager = BlockSpaceManager(
-        #     block_size=self.cache_config.block_size,
-        #     num_gpu_blocks=self.cache_config.num_gpu_blocks,
-        #     num_cpu_blocks=self.cache_config.num_cpu_blocks,
-        #     sliding_window=self.cache_config.sliding_window)
+        self.block_manager = BlockSpaceManager(
+            block_size=self.cache_config.block_size,
+            num_gpu_blocks=self.cache_config.num_gpu_blocks,
+            num_cpu_blocks=self.cache_config.num_cpu_blocks,
+            sliding_window=self.cache_config.sliding_window)
 
         # TODO(zhuohan): Use deque instead of list for better performance.
         # Sequence groups in the WAITING state.
@@ -185,6 +187,8 @@ class Scheduler:
                     blocks_to_swap_out=blocks_to_swap_out,
                     blocks_to_copy=blocks_to_copy,
                     ignored_seq_groups=ignored_seq_groups,
+                    # Co(gc): not used
+                    finished_seqs=[],
                 )
                 return scheduler_outputs
 
@@ -257,6 +261,8 @@ class Scheduler:
             blocks_to_swap_out=blocks_to_swap_out,
             blocks_to_copy=blocks_to_copy,
             ignored_seq_groups=[],
+            # Co(gc): not used
+            finished_seqs=[],
         )
         return scheduler_outputs
 
@@ -395,8 +401,6 @@ class Scheduler:
             seq.status = SequenceStatus.SWAPPED
 
 
-
-
 class FixedWindowScheduler:
 
     def __init__(
@@ -404,7 +408,17 @@ class FixedWindowScheduler:
         scheduler_config: SchedulerConfig,
         cache_config: CacheConfig,
     ) -> None:
+        """
+        Co(gc): A fixed window scheduler, requests sent limit totally be controlled by SchedulerConfig
+        We disable the block_manager in this class which results in that we cannot know if a request will
+        cause OOM in the backend worker.
+        To enable this, we will need the support of a PageTable, which then need to implement relevant
+        CUDA functions in ./scrc/cache_kernels.cu using oneAPI? So here's a TODO for you
+        TODO: Write a block manager so that we can have fine-grained batch control
+
+        """
         self.scheduler_config = scheduler_config
+        # Co(gc): disable the cache_config as we are not using it
         #self.cache_config = cache_config
 
         self.prompt_limit = min(self.scheduler_config.max_model_len,
@@ -413,10 +427,14 @@ class FixedWindowScheduler:
         # Instantiate the scheduling policy.
         self.policy = PolicyFactory.get_policy(policy_name="fcfs")
 
+        # Co(gc): disable the block manager
+
         # Sequence groups in the WAITING state.
         self.waiting: List[SequenceGroup] = []
         # Sequence groups in the RUNNING state.
         self.running: List[SequenceGroup] = []
+        self.cleaned: List[int] = []
+        # Co(gc): We no longer have the swapped space as we are not deciding which to swap
 
     def add_seq_group(self, seq_group: SequenceGroup) -> None:
         # Add sequence groups to the waiting queue.
@@ -456,6 +474,8 @@ class FixedWindowScheduler:
 
         ignored_seq_groups: List[SequenceGroup] = []
         scheduled: List[SequenceGroup] = []
+        finished_seqs: List[int] = self.cleaned.copy()
+        self.cleaned = []
         # The total number of sequences on the fly, including the
         # requests in the generation phase.
         num_curr_seqs = sum(seq_group.get_max_num_running_seqs()
@@ -483,6 +503,7 @@ class FixedWindowScheduler:
                     self.waiting.pop(0)
                     continue
 
+                # TODO(gc): If you can manage to make block_manager work, then this will be fine.
                 # If the sequence group cannot be allocated, stop.
                 # if not self.block_manager.can_allocate(seq_group):
                 #     break
@@ -502,14 +523,18 @@ class FixedWindowScheduler:
                 seq_group = self.waiting.pop(0)
                 for seq in seq_group.get_seqs():
                     seq.status = SequenceStatus.RUNNING
+                #TODO(gc): sames here
                 #self._allocate(seq_group)
                 self.running.append(seq_group)
                 num_batched_tokens += num_prompt_tokens
                 num_curr_seqs += num_new_seqs
                 scheduled.append(seq_group)
 
+<<<<<<< HEAD
                 # print("We have waited sequence_groups")
 
+=======
+>>>>>>> dd60db0845be4c6f625957fe81d0251cf2c9a01c
             scheduler_outputs = SchedulerOutputs(
                 scheduled_seq_groups=scheduled,
                 prompt_run=True,
@@ -518,6 +543,7 @@ class FixedWindowScheduler:
                 blocks_to_swap_out={},
                 blocks_to_copy={},
                 ignored_seq_groups=ignored_seq_groups,
+                finished_seqs=finished_seqs,
             )
             return scheduler_outputs
 
@@ -539,6 +565,7 @@ class FixedWindowScheduler:
             blocks_to_swap_out={},
             blocks_to_copy={},
             ignored_seq_groups=[],
+            finished_seqs=finished_seqs,
         )
         return scheduler_outputs
 
@@ -553,9 +580,6 @@ class FixedWindowScheduler:
         for seq_group in scheduler_outputs.scheduled_seq_groups:
             seq_data: Dict[int, List[SequenceData]] = {}
             block_tables: Dict[int, List[int]] = {}
-            # print("Here we print the length of the seq_groups")
-            # print(len(seq_group.get_seqs()))
-            # print("The following sequences are scheduled")
             for seq in seq_group.get_seqs(status=SequenceStatus.RUNNING):
                 seq_id = seq.seq_id
                 seq_data[seq_id] = seq.data
@@ -568,7 +592,6 @@ class FixedWindowScheduler:
                 sampling_params=seq_group.sampling_params,
                 block_tables=block_tables,
             )
-            # print(seq_group_metadata.seq_data.keys())
             seq_group_metadata_list.append(seq_group_metadata)
         return seq_group_metadata_list, scheduler_outputs
 
@@ -576,9 +599,11 @@ class FixedWindowScheduler:
         self.block_manager.fork(parent_seq, child_seq)
 
     def free_seq(self, seq: Sequence) -> None:
-        self.block_manager.free(seq)
+        #self.block_manager.free(seq)
+        self.cleaned.append(seq.seq_id)
 
     def free_finished_seq_groups(self) -> None:
+        # Co(gc): just some debug statements
         # for seq_group in self.running:
         #     if seq_group.is_finished():
         #         print("A finished seq_group")
