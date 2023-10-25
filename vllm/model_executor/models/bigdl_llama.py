@@ -103,7 +103,6 @@ class BigDLLlamaForCausalLM(nn.Module):
             bigdl_sampling_params[seq_id] = seq_group_meta_data.sampling_params
 
             context_len = seq_data.get_len()
-            bigdl_position_ids.append(range(context_len))
 
         if all_decoding:
             # pdb.set_trace()
