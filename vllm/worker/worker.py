@@ -13,7 +13,7 @@ from vllm.model_executor.parallel_utils.parallel_state import (
 from vllm.sampling_params import SamplingParams
 from vllm.sequence import SamplerOutput, SequenceData, SequenceGroupMetadata
 # from vllm.worker.cache_engine import CacheEngine
-from vllm.utils import get_gpu_memory, get_max_shared_memory_bytes
+# from vllm.utils import get_gpu_memory, get_max_shared_memory_bytes
 
 import pdb
 
