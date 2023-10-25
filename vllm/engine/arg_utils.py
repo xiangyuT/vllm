@@ -31,7 +31,7 @@ class EngineArgs:
     revision: Optional[str] = None
     tokenizer_revision: Optional[str] = None
     quantization: Optional[str] = None
-    device: Optional[str] = None
+    device: Optional[str] = 'cpu'
 
     def __post_init__(self):
         if self.tokenizer is None:

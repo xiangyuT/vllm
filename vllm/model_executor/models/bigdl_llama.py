@@ -54,7 +54,7 @@ class BigDLLlamaForCausalLM(nn.Module):
         self.tokenizer = AutoTokenizer.from_pretrained(config._name_or_path)
         self.device = torch.device(
             "cuda" if torch.cuda.is_available() else "cpu")
-        self.dtype = self.model.config.torch_dtype
+        self.dtype = self.model.dtype
         # self.tmp_kv_cache = [[0]]
 
     def decode(self, generated_ids: List[int]) -> str:
@@ -77,7 +77,7 @@ class BigDLLlamaForCausalLM(nn.Module):
         seq_len = len(seq_group_meta_data_lists)
 
         bigdl_input_ids = []
-        bigdl_position_ids = []
+        # bigdl_position_ids = []
         cur_seq_ids = []
         bigdl_sampling_params = {}
         max_context_len = 0
@@ -94,11 +94,11 @@ class BigDLLlamaForCausalLM(nn.Module):
             context_len = seq_data.get_len()
             if seq_group_meta_data.is_prompt:
                 bigdl_input_ids.append(cur_seq_input_ids)
-                bigdl_position_ids.append(list(range(context_len)))
+                # bigdl_position_ids.append(list(range(context_len)))
                 max_context_len = max(max_context_len, context_len)
             else:
                 bigdl_input_ids.append([cur_seq_input_ids[-1]])
-                bigdl_position_ids.append([context_len - 1])
+                # bigdl_position_ids.append([context_len - 1])
 
             bigdl_sampling_params[seq_id] = seq_group_meta_data.sampling_params
 
@@ -124,15 +124,14 @@ class BigDLLlamaForCausalLM(nn.Module):
                 _pad_to_max(input_ids, max_context_len)
                 for input_ids in bigdl_input_ids
             ]
-            bigdl_position_ids = [
-                _pad_to_max(position_ids, max_context_len)
-                for position_ids in bigdl_position_ids
-            ]
+            # bigdl_position_ids = [
+            #     _pad_to_max(position_ids, max_context_len)
+            #     for position_ids in bigdl_position_ids
+            # ]
 
         bigdl_input_ids = torch.tensor(bigdl_input_ids, device=self.device)
-        bigdl_position_ids = torch.tensor(bigdl_position_ids,
-                                          device=self.device)
-
+        # bigdl_position_ids = torch.tensor(bigdl_position_ids,
+        #                                   device=self.device, dtype=self.dtype)
         if all_decoding:
             kwargs = {
                 "input_ids": bigdl_input_ids,
