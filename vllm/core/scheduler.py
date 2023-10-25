@@ -530,11 +530,6 @@ class FixedWindowScheduler:
                 num_curr_seqs += num_new_seqs
                 scheduled.append(seq_group)
 
-<<<<<<< HEAD
-                # print("We have waited sequence_groups")
-
-=======
->>>>>>> dd60db0845be4c6f625957fe81d0251cf2c9a01c
             scheduler_outputs = SchedulerOutputs(
                 scheduled_seq_groups=scheduled,
                 prompt_run=True,
