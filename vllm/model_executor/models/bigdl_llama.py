@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from transformers import AutoTokenizer, AutoModelForCausalLM, PreTrainedTokenizerBase, LlamaConfig
+from transformers import AutoTokenizer, PreTrainedTokenizerBase, LlamaConfig
 from typing import Optional, Tuple, List, Type, Dict
 
 from vllm.transformers_utils.tokenizer import (detokenize_incrementally,
@@ -50,6 +50,10 @@ class BigDLLlamaForCausalLM(nn.Module):
         super().__init__()
         # pdb.set_trace()
         self.config = config
+        if True:
+            from bigdl.llm.transformers import AutoModelForCausalLM
+        else:
+            from transformers import AutoModelForCausalLM
         self.model = AutoModelForCausalLM.from_pretrained(config._name_or_path)
         self.tokenizer = AutoTokenizer.from_pretrained(config._name_or_path)
         self.device = torch.device(
