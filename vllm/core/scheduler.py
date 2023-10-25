@@ -508,7 +508,7 @@ class FixedWindowScheduler:
                 num_curr_seqs += num_new_seqs
                 scheduled.append(seq_group)
 
-                print("We have waited sequence_groups")
+                # print("We have waited sequence_groups")
 
             scheduler_outputs = SchedulerOutputs(
                 scheduled_seq_groups=scheduled,
@@ -553,9 +553,9 @@ class FixedWindowScheduler:
         for seq_group in scheduler_outputs.scheduled_seq_groups:
             seq_data: Dict[int, List[SequenceData]] = {}
             block_tables: Dict[int, List[int]] = {}
-            print("Here we print the length of the seq_groups")
-            print(len(seq_group.get_seqs()))
-            print("The following sequences are scheduled")
+            # print("Here we print the length of the seq_groups")
+            # print(len(seq_group.get_seqs()))
+            # print("The following sequences are scheduled")
             for seq in seq_group.get_seqs(status=SequenceStatus.RUNNING):
                 seq_id = seq.seq_id
                 seq_data[seq_id] = seq.data
@@ -568,7 +568,7 @@ class FixedWindowScheduler:
                 sampling_params=seq_group.sampling_params,
                 block_tables=block_tables,
             )
-            print(seq_group_metadata.seq_data.keys())
+            # print(seq_group_metadata.seq_data.keys())
             seq_group_metadata_list.append(seq_group_metadata)
         return seq_group_metadata_list, scheduler_outputs
 
@@ -579,10 +579,10 @@ class FixedWindowScheduler:
         self.block_manager.free(seq)
 
     def free_finished_seq_groups(self) -> None:
-        for seq_group in self.running:
-            if seq_group.is_finished():
-                print("A finished seq_group")
-                print(seq_group)
+        # for seq_group in self.running:
+        #     if seq_group.is_finished():
+        #         print("A finished seq_group")
+        #         print(seq_group)
         self.running = [
             seq_group for seq_group in self.running
             if not seq_group.is_finished()

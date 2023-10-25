@@ -199,7 +199,7 @@ class _AsyncLLMEngine(LLMEngine):
             blocks_to_swap_out=scheduler_outputs.blocks_to_swap_out,
             blocks_to_copy=scheduler_outputs.blocks_to_copy,
         )
-        print("We finished model_execution")
+        # print("We finished model_execution")
         return self._process_model_outputs(output, scheduler_outputs) + ignored
 
     async def _run_workers_async(

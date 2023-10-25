@@ -540,15 +540,15 @@ class LLMEngine:
             scheduler_outputs: SchedulerOutputs) -> List[RequestOutput]:
         # Update the scheduled sequence groups with the model outputs.
         # Try print SamplerOutput
-        for list_of_sequence_output in output:
-            # List of SequenceOutputs
-            for seq_output in list_of_sequence_output:
-                print(seq_output.output_token)
+        # for list_of_sequence_output in output:
+        #     # List of SequenceOutputs
+        #     for seq_output in list_of_sequence_output:
+        #         print(seq_output.output_token)
         scheduled_seq_groups = scheduler_outputs.scheduled_seq_groups
         for seq_group, samples in zip(scheduled_seq_groups, output):
             self._process_sequence_group_samples(seq_group, samples)
 
-        print("after _process_sequence_group_samples")
+        # print("after _process_sequence_group_samples")
         # Free the finished sequence groups.
         self.scheduler.free_finished_seq_groups()
 
@@ -558,7 +558,7 @@ class LLMEngine:
                           scheduler_outputs.ignored_seq_groups):
             request_output = RequestOutput.from_seq_group(seq_group)
             request_outputs.append(request_output)
-        print("After generating request_outputs")
+        # print("After generating request_outputs")
 
         # if self.log_stats:
         #     # Log the system stats.
