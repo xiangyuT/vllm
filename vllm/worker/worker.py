@@ -12,7 +12,7 @@ from vllm.model_executor.parallel_utils.parallel_state import (
     initialize_model_parallel)
 from vllm.sampling_params import SamplingParams
 from vllm.sequence import SamplerOutput, SequenceData, SequenceGroupMetadata
-from vllm.worker.cache_engine import CacheEngine
+# from vllm.worker.cache_engine import CacheEngine
 from vllm.utils import get_gpu_memory, get_max_shared_memory_bytes
 
 import pdb
@@ -137,8 +137,8 @@ class Worker:
         torch.cuda.synchronize()
         peak_memory = torch.cuda.max_memory_allocated()
         total_gpu_memory = get_gpu_memory()
-        cache_block_size = CacheEngine.get_cache_block_size(
-            block_size, self.model_config, self.parallel_config)
+        # cache_block_size = CacheEngine.get_cache_block_size(
+        #     block_size, self.model_config, self.parallel_config)
         num_gpu_blocks = int(
             (total_gpu_memory * gpu_memory_utilization - peak_memory) //
             cache_block_size)
@@ -164,8 +164,8 @@ class Worker:
                               self.sliding_window)
         _check_if_can_support_max_seq_len(max_seq_len, self.block_size)
 
-        self.cache_engine = CacheEngine(self.cache_config, self.model_config,
-                                        self.parallel_config)
+        # self.cache_engine = CacheEngine(self.cache_config, self.model_config,
+        #                                 self.parallel_config)
         self.cache_events = self.cache_engine.events
         self.gpu_cache = self.cache_engine.gpu_cache
 
