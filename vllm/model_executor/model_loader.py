@@ -13,23 +13,23 @@ from vllm.model_executor.weight_utils import (get_quant_config,
 
 # TODO(woosuk): Lazy-load the model classes.
 _MODEL_REGISTRY = {
-    "AquilaModel": AquilaForCausalLM,
-    "BaiChuanForCausalLM": BaiChuanForCausalLM,  # baichuan-7b
-    "BaichuanForCausalLM": BaichuanForCausalLM,  # baichuan-13b
-    "BloomForCausalLM": BloomForCausalLM,
-    "FalconForCausalLM": FalconForCausalLM,
-    "GPT2LMHeadModel": GPT2LMHeadModel,
-    "GPTBigCodeForCausalLM": GPTBigCodeForCausalLM,
-    "GPTJForCausalLM": GPTJForCausalLM,
-    "GPTNeoXForCausalLM": GPTNeoXForCausalLM,
-    "InternLMForCausalLM": InternLMForCausalLM,
+    # "AquilaModel": AquilaForCausalLM,
+    # "BaiChuanForCausalLM": BaiChuanForCausalLM,  # baichuan-7b
+    # "BaichuanForCausalLM": BaichuanForCausalLM,  # baichuan-13b
+    # "BloomForCausalLM": BloomForCausalLM,
+    # "FalconForCausalLM": FalconForCausalLM,
+    # "GPT2LMHeadModel": GPT2LMHeadModel,
+    # "GPTBigCodeForCausalLM": GPTBigCodeForCausalLM,
+    # "GPTJForCausalLM": GPTJForCausalLM,
+    # "GPTNeoXForCausalLM": GPTNeoXForCausalLM,
+    # "InternLMForCausalLM": InternLMForCausalLM,
     "LlamaForCausalLM": BigDLLlamaForCausalLM,
-    "LLaMAForCausalLM": LlamaForCausalLM,  # For decapoda-research/llama-*
-    "MistralForCausalLM": MistralForCausalLM,
-    "MPTForCausalLM": MPTForCausalLM,
-    "OPTForCausalLM": OPTForCausalLM,
-    "QWenLMHeadModel": QWenLMHeadModel,
-    "RWForCausalLM": FalconForCausalLM,
+    # "LLaMAForCausalLM": LlamaForCausalLM,  # For decapoda-research/llama-*
+    # "MistralForCausalLM": MistralForCausalLM,
+    # "MPTForCausalLM": MPTForCausalLM,
+    # "OPTForCausalLM": OPTForCausalLM,
+    # "QWenLMHeadModel": QWenLMHeadModel,
+    # "RWForCausalLM": FalconForCausalLM,
 }
 
 # FIXME(woosuk): Remove this once all models support quantization.
