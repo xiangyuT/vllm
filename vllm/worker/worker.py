@@ -51,8 +51,7 @@ class Worker:
         self.kv_cache = dict()
 
     def init_model(self):
-        # TODO(xiangyu): Modify condition
-        if False:
+        if self.model_config.device != 'cpu':
             # This env var set by Ray causes exceptions with graph building.
             os.environ.pop("NCCL_ASYNC_ERROR_HANDLING", None)
             # Env vars will be set by Ray.
