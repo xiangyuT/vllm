@@ -48,6 +48,7 @@ class ModelConfig:
             output). If None, will be derived from the model.
         quantization: Quantization method that was used to quantize the model
             weights. If None, we assume the model weights are not quantized.
+        device: The device to be used for the model. If None, we will default to use CPU as the device.
     """
 
     def __init__(
@@ -64,6 +65,7 @@ class ModelConfig:
         tokenizer_revision: Optional[str] = None,
         max_model_len: Optional[int] = None,
         quantization: Optional[str] = None,
+        device: Optional[str] = 'cpu',
     ) -> None:
         self.model = model
         self.tokenizer = tokenizer
@@ -75,6 +77,7 @@ class ModelConfig:
         self.revision = revision
         self.tokenizer_revision = tokenizer_revision
         self.quantization = quantization
+        self.device = device
 
         self.hf_config = get_config(model, trust_remote_code, revision)
         self.dtype = _get_and_verify_dtype(self.hf_config, dtype)

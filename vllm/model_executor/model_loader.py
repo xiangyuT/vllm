@@ -7,34 +7,34 @@ import torch.nn as nn
 from transformers import PretrainedConfig
 
 from vllm.config import ModelConfig
-from vllm.model_executor.models import *  # pylint: disable=wildcard-import
+from vllm.model_executor.models import BigDLLlamaForCausalLM  # pylint: disable=wildcard-import
 from vllm.model_executor.weight_utils import (get_quant_config,
                                               initialize_dummy_weights)
 
 # TODO(woosuk): Lazy-load the model classes.
 _MODEL_REGISTRY = {
-    "AquilaModel": AquilaForCausalLM,
-    "BaiChuanForCausalLM": BaiChuanForCausalLM,  # baichuan-7b
-    "BaichuanForCausalLM": BaichuanForCausalLM,  # baichuan-13b
-    "BloomForCausalLM": BloomForCausalLM,
-    "FalconForCausalLM": FalconForCausalLM,
-    "GPT2LMHeadModel": GPT2LMHeadModel,
-    "GPTBigCodeForCausalLM": GPTBigCodeForCausalLM,
-    "GPTJForCausalLM": GPTJForCausalLM,
-    "GPTNeoXForCausalLM": GPTNeoXForCausalLM,
-    "InternLMForCausalLM": InternLMForCausalLM,
+    # "AquilaModel": AquilaForCausalLM,
+    # "BaiChuanForCausalLM": BaiChuanForCausalLM,  # baichuan-7b
+    # "BaichuanForCausalLM": BaichuanForCausalLM,  # baichuan-13b
+    # "BloomForCausalLM": BloomForCausalLM,
+    # "FalconForCausalLM": FalconForCausalLM,
+    # "GPT2LMHeadModel": GPT2LMHeadModel,
+    # "GPTBigCodeForCausalLM": GPTBigCodeForCausalLM,
+    # "GPTJForCausalLM": GPTJForCausalLM,
+    # "GPTNeoXForCausalLM": GPTNeoXForCausalLM,
+    # "InternLMForCausalLM": InternLMForCausalLM,
     "LlamaForCausalLM": BigDLLlamaForCausalLM,
-    "LLaMAForCausalLM": LlamaForCausalLM,  # For decapoda-research/llama-*
-    "MistralForCausalLM": MistralForCausalLM,
-    "MPTForCausalLM": MPTForCausalLM,
-    "OPTForCausalLM": OPTForCausalLM,
-    "QWenLMHeadModel": QWenLMHeadModel,
-    "RWForCausalLM": FalconForCausalLM,
+    # "LLaMAForCausalLM": LlamaForCausalLM,  # For decapoda-research/llama-*
+    # "MistralForCausalLM": MistralForCausalLM,
+    # "MPTForCausalLM": MPTForCausalLM,
+    # "OPTForCausalLM": OPTForCausalLM,
+    # "QWenLMHeadModel": QWenLMHeadModel,
+    # "RWForCausalLM": FalconForCausalLM,
 }
 
 # FIXME(woosuk): Remove this once all models support quantization.
 _MODEL_CLASSES_SUPPORT_QUANTIZATION = [
-    LlamaForCausalLM,
+#     LlamaForCausalLM,
 ]
 
 
@@ -100,5 +100,6 @@ def get_model(model_config: ModelConfig) -> nn.Module:
             # Load the weights from the cached or downloaded files.
             model.load_weights(model_config.model, model_config.download_dir,
                                model_config.load_format, model_config.revision)
-            model = model.cuda()
+            if model_config.device != 'cpu':
+                model = model.cuda()
     return model.eval()

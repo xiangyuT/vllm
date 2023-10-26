@@ -12,8 +12,8 @@ from vllm.model_executor.parallel_utils.parallel_state import (
     initialize_model_parallel)
 from vllm.sampling_params import SamplingParams
 from vllm.sequence import SamplerOutput, SequenceData, SequenceGroupMetadata
-from vllm.worker.cache_engine import CacheEngine
-from vllm.utils import get_gpu_memory, get_max_shared_memory_bytes
+# from vllm.worker.cache_engine import CacheEngine
+# from vllm.utils import get_gpu_memory, get_max_shared_memory_bytes
 
 import pdb
 
@@ -63,22 +63,23 @@ class Worker:
             del self.kv_cache[seq_id]
 
     def init_model(self):
-        # This env var set by Ray causes exceptions with graph building.
-        os.environ.pop("NCCL_ASYNC_ERROR_HANDLING", None)
-        # Env vars will be set by Ray.
-        self.rank = self.rank if self.rank is not None else int(
-            os.getenv("RANK", "-1"))
-        local_rank = int(os.getenv("LOCAL_RANK", "0"))
-        self.device = torch.device(f"cuda:{local_rank}")
-        if self.rank < 0:
-            raise ValueError("Invalid or unspecified rank.")
-        torch.cuda.set_device(self.device)
+        if self.model_config.device != 'cpu':
+            # This env var set by Ray causes exceptions with graph building.
+            os.environ.pop("NCCL_ASYNC_ERROR_HANDLING", None)
+            # Env vars will be set by Ray.
+            self.rank = self.rank if self.rank is not None else int(
+                os.getenv("RANK", "-1"))
+            local_rank = int(os.getenv("LOCAL_RANK", "0"))
+            self.device = torch.device(f"cuda:{local_rank}")
+            if self.rank < 0:
+                raise ValueError("Invalid or unspecified rank.")
+            torch.cuda.set_device(self.device)
 
-        _check_if_gpu_supports_dtype(self.model_config.dtype)
+            _check_if_gpu_supports_dtype(self.model_config.dtype)
 
-        # Initialize the distributed environment.
-        _init_distributed_environment(self.parallel_config, self.rank,
-                                      self.distributed_init_method)
+            # Initialize the distributed environment.
+            _init_distributed_environment(self.parallel_config, self.rank,
+                                        self.distributed_init_method)
 
         # Initialize the model.
         set_random_seed(self.model_config.seed)
@@ -136,8 +137,8 @@ class Worker:
         torch.cuda.synchronize()
         peak_memory = torch.cuda.max_memory_allocated()
         total_gpu_memory = get_gpu_memory()
-        cache_block_size = CacheEngine.get_cache_block_size(
-            block_size, self.model_config, self.parallel_config)
+        # cache_block_size = CacheEngine.get_cache_block_size(
+        #     block_size, self.model_config, self.parallel_config)
         num_gpu_blocks = int(
             (total_gpu_memory * gpu_memory_utilization - peak_memory) //
             cache_block_size)
@@ -163,8 +164,8 @@ class Worker:
                               self.sliding_window)
         _check_if_can_support_max_seq_len(max_seq_len, self.block_size)
 
-        self.cache_engine = CacheEngine(self.cache_config, self.model_config,
-                                        self.parallel_config)
+        # self.cache_engine = CacheEngine(self.cache_config, self.model_config,
+        #                                 self.parallel_config)
         self.cache_events = self.cache_engine.events
         self.gpu_cache = self.cache_engine.gpu_cache
 
