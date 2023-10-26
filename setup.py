@@ -28,7 +28,6 @@ ROOT_DIR = os.path.dirname(__file__)
 #     raise RuntimeError(
 #         "Cannot find CUDA_HOME. CUDA must be available to build the package.")
 
-
 # def get_nvcc_cuda_version(cuda_dir: str) -> Version:
 #     """Get the CUDA version from nvcc.
 
@@ -40,7 +39,6 @@ ROOT_DIR = os.path.dirname(__file__)
 #     release_idx = output.index("release") + 1
 #     nvcc_cuda_version = parse(output[release_idx].split(",")[0])
 #     return nvcc_cuda_version
-
 
 # def get_torch_arch_list() -> Set[str]:
 #     # TORCH_CUDA_ARCH_LIST can have one or more architectures,
@@ -62,7 +60,6 @@ ROOT_DIR = os.path.dirname(__file__)
 #                 f"Unsupported CUDA arch ({arch}). "
 #                 f"Valid CUDA arch strings are: {valid_arch_strs}.")
 #     return set(arch_list)
-
 
 # # First, check the TORCH_CUDA_ARCH_LIST environment variable.
 # compute_capabilities = get_torch_arch_list()

@@ -167,7 +167,8 @@ class BigDLLlamaForCausalLM(nn.Module):
             last_token_logits = logits_processor(
                 None, outputs.logits[index:index + 1, -1, :])[0]
             probs = torch.softmax(last_token_logits, dim=-1)
-            indices = torch.multinomial(probs, num_samples=cur_sampling_params.best_of)
+            indices = torch.multinomial(
+                probs, num_samples=cur_sampling_params.best_of)
             tokens = [int(token) for token in indices.tolist()]
 
             logprobs = math.log(probs[tokens[0]])

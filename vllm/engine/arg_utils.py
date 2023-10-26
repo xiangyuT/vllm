@@ -172,7 +172,7 @@ class EngineArgs:
                             choices=['gpu', 'cpu', None],
                             default=None,
                             help='Device to execute LLM model')
-        
+
         return parser
 
     @classmethod
