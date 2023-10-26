@@ -171,7 +171,7 @@ class EngineArgs:
                             type=str,
                             choices=['gpu', 'cpu', None],
                             default=None,
-                            help='Method used to quantize the weights')
+                            help='Device to execute LLM model')
         
         return parser
 
