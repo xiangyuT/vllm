@@ -20,6 +20,7 @@ from transformers.generation.logits_process import (
     TopPLogitsWarper,
 )
 
+# import time
 
 def prepare_logits_processor(temperature: float, repetition_penalty: float,
                              top_p: float, top_k: int) -> LogitsProcessorList:
@@ -57,7 +58,7 @@ class BigDLLlamaForCausalLM(nn.Module):
         self.model = AutoModelForCausalLM.from_pretrained(
             config._name_or_path,
             load_in_4bit=True,
-            # low_cpu_mem_usage=True,
+            low_cpu_mem_usage=True,
         )
         self.tokenizer = AutoTokenizer.from_pretrained(config._name_or_path)
         self.device = torch.device(
@@ -146,7 +147,7 @@ class BigDLLlamaForCausalLM(nn.Module):
                 # "position_ids": bigdl_position_ids,
                 "past_key_values": bigdl_kv_cache,
                 "use_cache": True,
-                "return_dict": True,
+                # "return_dict": True,
             }
         else:
             kwargs = {
@@ -154,10 +155,14 @@ class BigDLLlamaForCausalLM(nn.Module):
                 # "position_ids": bigdl_position_ids,
                 "past_key_values": None,
                 "use_cache": True,
-                "return_dict": True,
+                # "return_dict": True,
             }
         # pdb.set_trace()
+        
+        # st_timestamp = time.perf_counter()
         outputs = self.model.forward(**kwargs)
+        # ed_timestamp = time.perf_counter()
+        # print("inference latency: ", ed_timestamp - st_timestamp)
         # self.tmp_kv_cache = outputs.past_key_values
         index = 0
         bigdl_output = []
