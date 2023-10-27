@@ -54,7 +54,11 @@ class BigDLLlamaForCausalLM(nn.Module):
             from bigdl.llm.transformers import AutoModelForCausalLM
         else:
             from transformers import AutoModelForCausalLM
-        self.model = AutoModelForCausalLM.from_pretrained(config._name_or_path)
+        self.model = AutoModelForCausalLM.from_pretrained(
+            config._name_or_path,
+            load_in_4bit=True,
+            # low_cpu_mem_usage=True,
+        )
         self.tokenizer = AutoTokenizer.from_pretrained(config._name_or_path)
         self.device = torch.device(
             "cuda" if torch.cuda.is_available() else "cpu")
