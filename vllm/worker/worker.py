@@ -57,13 +57,14 @@ class Worker:
         """
         for seq_id in finished_seqs:
             if seq_id not in self.kv_cache.keys():
+                continue
                 raise ValueError(
                     f"Duplicate key {seq_id} received during clean worker's KVCache"
                 )
             del self.kv_cache[seq_id]
 
     def init_model(self):
-        if self.model_config.device != 'cpu':
+        if self.model_config.device == 'gpu':
             # This env var set by Ray causes exceptions with graph building.
             os.environ.pop("NCCL_ASYNC_ERROR_HANDLING", None)
             # Env vars will be set by Ray.
@@ -75,11 +76,11 @@ class Worker:
                 raise ValueError("Invalid or unspecified rank.")
             torch.cuda.set_device(self.device)
 
-            _check_if_gpu_supports_dtype(self.model_config.dtype)
+            # _check_if_gpu_supports_dtype(self.model_config.dtype)
 
             # Initialize the distributed environment.
-            _init_distributed_environment(self.parallel_config, self.rank,
-                                          self.distributed_init_method)
+            # _init_distributed_environment(self.parallel_config, self.rank,
+            #                               self.distributed_init_method)
 
         # Initialize the model.
         set_random_seed(self.model_config.seed)
@@ -326,6 +327,7 @@ class Worker:
         #     cache_events = None
         if finished_seqs:
             self.clean_finished_seqs(finished_seqs)
+        torch.xpu.empty_cache()
 
         cache_events = None
         # If there is no input, we don't need to execute the model.

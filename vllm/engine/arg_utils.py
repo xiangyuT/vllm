@@ -169,7 +169,7 @@ class EngineArgs:
                             help='Method used to quantize the weights')
         parser.add_argument('--device',
                             type=str,
-                            choices=['gpu', 'cpu', None],
+                            choices=['gpu', 'cpu', 'xpu', None],
                             default=None,
                             help='Device to execute LLM model')
 

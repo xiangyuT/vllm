@@ -109,7 +109,7 @@ class RequestTracker:
         if request_output.finished:
             if verbose:
                 logger.info(f"Finished request {request_id}.")
-            self.abort_request(request_id)
+            self.abort_request(request_id, verbose = verbose)
 
     def add_request(self, request_id: str,
                     **engine_add_request_kwargs) -> AsyncStream:
@@ -196,7 +196,7 @@ class _AsyncLLMEngine(LLMEngine):
             blocks_to_swap_in=scheduler_outputs.blocks_to_swap_in,
             blocks_to_swap_out=scheduler_outputs.blocks_to_swap_out,
             blocks_to_copy=scheduler_outputs.blocks_to_copy,
-            finished_seqs=scheduler_outputs.finished_seqs,
+            finished_seqs=scheduler_outputs.finished_seqs[:],
         )
         return self._process_model_outputs(output, scheduler_outputs) + ignored
 

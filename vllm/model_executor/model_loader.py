@@ -88,9 +88,9 @@ def get_model(model_config: ModelConfig) -> nn.Module:
         # Create a model instance.
         # The weights will be initialized as empty tensors.
         if model_class in _MODEL_CLASSES_SUPPORT_QUANTIZATION:
-            model = model_class(model_config.hf_config, quant_config)
+            model = model_class(model_config.hf_config, quant_config) 
         else:
-            model = model_class(model_config.hf_config)
+            model = model_class(model_config.hf_config, device = model_config.device)
         if model_config.load_format == "dummy":
             model = model.cuda()
             # NOTE(woosuk): For accurate performance evaluation, we assign
@@ -100,6 +100,6 @@ def get_model(model_config: ModelConfig) -> nn.Module:
             # Load the weights from the cached or downloaded files.
             model.load_weights(model_config.model, model_config.download_dir,
                                model_config.load_format, model_config.revision)
-            if model_config.device != 'cpu':
+            if model_config.device == 'gpu':
                 model = model.cuda()
     return model.eval()
