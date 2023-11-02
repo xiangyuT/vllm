@@ -9,8 +9,20 @@ from vllm.logger import init_logger
 from vllm.sequence import (Sequence, SequenceData, SequenceGroup,
                            SequenceGroupMetadata, SequenceStatus)
 
+
+import torch
+import intel_extension_for_pytorch as ipex
+import gc
+import time
+
 logger = init_logger(__name__)
 
+def _print_gpu_memory():
+    allocated_bytes = torch.xpu.memory_stats(0)['reserved_bytes.all.current']
+    all_bytes = torch.xpu.get_device_properties(0).total_memory
+    reserved_bytes_cur = all_bytes - allocated_bytes
+    one_reserved_bytes = 1024 * 1024 * 1024
+    print("current available: ", reserved_bytes_cur/one_reserved_bytes)
 
 class PreemptionMode(enum.Enum):
     """Preemption modes.
@@ -486,9 +498,15 @@ class FixedWindowScheduler:
             # We restrict how many requests that can be run using these three arguments
             # Co(gc): If there are waiting requests, we will just try to add it into the running state if not exceeds the stage
             # Co(gc): prefilled requests are prioritied over decoding stage requests
+            # allocated_bytes = torch.xpu.memory_stats(0)['reserved_bytes.all.current']
+            # all_bytes = torch.xpu.get_device_properties(0).total_memory
+            # reserved_bytes_cur = all_bytes - allocated_bytes
+            one_reserved_bytes = 1024 * 1024 * 1024
+            # print(reserved_bytes_cur/one_reserved_bytes)
+            # print('-----------------------------------------')
             while self.waiting:
                 seq_group = self.waiting[0]
-
+                # print(seq_group.get_seqs()[0].tokens)
                 assert seq_group.num_seqs() == 1, (
                     "Waiting sequence group should have only one prompt "
                     "sequence.")
@@ -507,6 +525,39 @@ class FixedWindowScheduler:
                 # If the sequence group cannot be allocated, stop.
                 # if not self.block_manager.can_allocate(seq_group):
                 #     break
+                if True:
+                    torch.xpu.empty_cache()
+                    if len(finished_seqs) == 0:
+                        allocated_bytes = torch.xpu.memory_stats(0)['reserved_bytes.all.current']
+                        all_bytes = torch.xpu.get_device_properties(0).total_memory
+                        reserved_bytes_cur = all_bytes - allocated_bytes
+                        print("current: ", reserved_bytes_cur/one_reserved_bytes)
+                        if allocated_bytes >= all_bytes * 0.5:
+                            logger.warning("OOM risk.")
+                            ignored_seq_groups.append(seq_group)
+                            self.waiting.pop(0)
+                            continue
+                        # allocated_bytes = torch.xpu.memory_stats(0)['reserved_bytes.all.current']
+                        # all_bytes = torch.xpu.get_device_properties(0).total_memory
+                        # reserved_bytes_cur = all_bytes - allocated_bytes
+                        # print(reserved_bytes_cur/one_reserved_bytes)
+                        # if allocated_bytes > all_bytes * 0.5:
+                        #     break
+                    else:
+                        allocated_bytes = torch.xpu.memory_stats(0)['reserved_bytes.all.current']
+                        all_bytes = torch.xpu.get_device_properties(0).total_memory
+                        if allocated_bytes > all_bytes * 0.9:
+                            logger.warning("OOM risk.")
+                            ignored_seq_groups.append(seq_group)
+                            self.waiting.pop(0)
+                            continue
+                #             else:
+                #                 gc.collect()
+                #                 torch.cuda.empty_cache()
+                #                 if True:
+                #                     torch.xpu.empty_cache()
+                #                 break
+                        
 
                 # If the number of batched tokens exceeds the limit, stop.
                 if (num_batched_tokens + num_prompt_tokens >
@@ -597,12 +648,18 @@ class FixedWindowScheduler:
         #self.block_manager.free(seq)
         self.cleaned.append(seq.seq_id)
 
-    def free_finished_seq_groups(self) -> None:
+    def free_finished_seq_groups(self, kv_cache:Optional[Dict]) -> None:
         # Co(gc): just some debug statements
-        # for seq_group in self.running:
-        #     if seq_group.is_finished():
-        #         print("A finished seq_group")
-        #         print(seq_group)
+        for seq_group in self.running:
+            if seq_group.is_finished():
+                print("A finished seq_group")
+                print(seq_group)
+                seq_id = list(seq_group.seqs_dict.keys())[0]
+                if seq_id not in kv_cache.keys():
+                    continue
+                del kv_cache[seq_id]
+                torch.xpu.empty_cache()
+
         self.running = [
             seq_group for seq_group in self.running
             if not seq_group.is_finished()

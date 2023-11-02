@@ -1,7 +1,7 @@
 import copy
 import time
 from functools import partial
-from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Tuple, Union, Dict
 
 from vllm.config import (CacheConfig, ModelConfig, ParallelConfig,
                          SchedulerConfig)
@@ -528,14 +528,15 @@ class LLMEngine:
 
     def _process_model_outputs(
             self, output: SamplerOutput,
-            scheduler_outputs: SchedulerOutputs) -> List[RequestOutput]:
+            scheduler_outputs: SchedulerOutputs,
+            kv_cache: Optional[Dict] = None) -> List[RequestOutput]:
         # Update the scheduled sequence groups with the model outputs.
         scheduled_seq_groups = scheduler_outputs.scheduled_seq_groups
         for seq_group, samples in zip(scheduled_seq_groups, output):
             self._process_sequence_group_samples(seq_group, samples)
 
         # Free the finished sequence groups.
-        self.scheduler.free_finished_seq_groups()
+        self.scheduler.free_finished_seq_groups(kv_cache)
 
         # Create the outputs.
         request_outputs: List[RequestOutput] = []

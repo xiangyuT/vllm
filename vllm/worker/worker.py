@@ -16,7 +16,7 @@ from vllm.sequence import SamplerOutput, SequenceData, SequenceGroupMetadata
 # from vllm.utils import get_gpu_memory, get_max_shared_memory_bytes
 
 import pdb
-
+import gc
 
 class Worker:
     """A worker class that executes (a partition of) the model on a GPU.
@@ -173,6 +173,7 @@ class Worker:
     def _prepare_inputs(
         self,
         seq_group_metadata_list: List[SequenceGroupMetadata],
+        device: Optional = None,
     ) -> Tuple[torch.Tensor, torch.Tensor, InputMetadata]:
         seq_groups: List[Tuple[List[int], SamplingParams]] = []
         input_tokens: List[int] = []
@@ -243,8 +244,8 @@ class Worker:
                 # block_table = seq_group_metadata.block_tables[seq_id]
 
                 max_context_len = max(max_context_len, context_len)
-                max_num_blocks_per_seq = max(max_num_blocks_per_seq,
-                                             len(block_table))
+                # max_num_blocks_per_seq = max(max_num_blocks_per_seq,
+                #                              len(block_table))
                 context_lens.append(context_len)
 
                 # block_number = block_table[position // self.block_size]
@@ -265,17 +266,14 @@ class Worker:
 
         # Convert to tensors.
         tokens_tensor = torch.tensor(input_tokens,
-                                     dtype=torch.long,
-                                     device="cuda")
+                                     dtype=torch.long)
         positions_tensor = torch.tensor(input_positions,
-                                        dtype=torch.long,
-                                        device="cuda")
+                                        dtype=torch.long)
         # slot_mapping_tensor = torch.tensor(slot_mapping,
         #                                    dtype=torch.int,
         #                                    device="cuda")
         context_lens_tensor = torch.tensor(context_lens,
-                                           dtype=torch.int,
-                                           device="cuda")
+                                           dtype=torch.int)
         # padded_block_tables = [
         #     _pad_to_max(block_table, max_num_blocks_per_seq)
         #     for block_table in generation_block_tables
@@ -308,7 +306,7 @@ class Worker:
         blocks_to_swap_out: Dict[int, int],
         blocks_to_copy: Dict[int, List[int]],
         finished_seqs: List[int],
-    ) -> SamplerOutput:
+    ) -> (SamplerOutput, Optional[Dict]):
         # Issue cache operations.
         # issued_cache_op = False
         # if blocks_to_swap_in:
@@ -327,23 +325,29 @@ class Worker:
         #     cache_events = None
         if finished_seqs:
             self.clean_finished_seqs(finished_seqs)
-        torch.xpu.empty_cache()
-
+            gc.collect()
+            torch.cuda.empty_cache()
+            if True:
+                torch.xpu.empty_cache()
+        torch.xpu.synchronize()
         cache_events = None
         # If there is no input, we don't need to execute the model.
         if not seq_group_metadata_list:
             if cache_events is not None:
                 for event in cache_events:
                     event.wait()
-            return {}
+            return {}, None
 
         # pdb.set_trace()
         #TODO: use environment/global virable to check
         if True:
-            output = self.model(
+            input_tokens, input_positions, input_metadata = self._prepare_inputs(
+                seq_group_metadata_list)
+            output, kv_cache = self.model(
                 seq_group_meta_data_lists=seq_group_metadata_list,
-                kv_cache=self.kv_cache)
-            return output
+                kv_cache=self.kv_cache, input_metadata = input_metadata)
+            torch.xpu.synchronize()
+            return output, self.kv_cache
         else:
             # Prepare input tensors.
             input_tokens, input_positions, input_metadata = self._prepare_inputs(
@@ -357,7 +361,7 @@ class Worker:
                 input_metadata=input_metadata,
                 cache_events=cache_events,
             )
-        return output
+        return output, None
 
 
 def _init_distributed_environment(
