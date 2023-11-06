@@ -22,6 +22,7 @@ from transformers.generation.logits_process import (
     TopPLogitsWarper,
 )
 
+max_seq_limit = 64
 
 def prepare_logits_processor(temperature: float, repetition_penalty: float,
                              top_p: float, top_k: int) -> LogitsProcessorList:
@@ -38,19 +39,22 @@ def prepare_logits_processor(temperature: float, repetition_penalty: float,
     return processor_list
 
 
-def _pad_to_max(x: List[int], max_len: int) -> List[int]:
-    return x + [0] * (max_len - len(x))
+def _pad_to_max(x: List[int], max_len: int, padding_id: int) -> List[int]:
+    return x + [padding_id] * (max_len - len(x))
 
-def _pad_kv_cache_view(t: torch.Tensor, len: int, device: torch.device) -> torch.Tensor:
+def _pad_kv_cache_view(t: torch.Tensor, len: int, device: torch.device, pos: int = 2) -> torch.Tensor:
     cur_size = list(t.size())
-    if cur_size[2] < len:
+    if cur_size[pos] < len:
         tmp_size = cur_size[:]
-        tmp_size[2] = len - cur_size[2]
+        tmp_size[pos] = len - cur_size[pos]
         zeros = torch.zeros(tmp_size, device = device)
-        padded_view = torch.cat((t, zeros), dim = 2)
+        padded_view = torch.cat((zeros, t), dim = pos)
         return padded_view
-    else:
-        return t
+    if cur_size[pos] > len:
+        padded_view = t.narrow(pos, cur_size[pos] - len, len)
+        # padded_view = t.narrow(pos, 0, len)
+        return padded_view
+    return t
 
 # def _pad_kv_cache_view(t: torch.Tensor, length: int, device: torch.device) -> torch.Tensor:
 #     cur_size = list(t.size())
@@ -93,7 +97,7 @@ class BigDLLlamaForCausalLM(nn.Module):
         self.model = model.to('xpu')
         #self.model = AutoModelForCausalLM.from_pretrained(config._name_or_path)
         # self.tokenizer = AutoTokenizer.from_pretrained(config._name_or_path)
-        self.sampler = BigDLSampler(config.vocab_size)
+        self.sampler = BigDLSampler(config.vocab_size).to('xpu')
         if device is None:
             self.device = torch.device(
                 "cuda" if torch.cuda.is_available() else "cpu")
@@ -104,7 +108,8 @@ class BigDLLlamaForCausalLM(nn.Module):
         self.dtype = self.model.dtype
         self.kv_cache_size = [0]
         self.last_seq_ids = []
-        self.tmp_kv_cache = [[]]
+        self.tmp_kv_cache = None
+        self.pad_token_id = config.pad_token_id
 
 
     # def decode(self, generated_ids: List[int]) -> str:
@@ -123,13 +128,17 @@ class BigDLLlamaForCausalLM(nn.Module):
         seq_len = len(seq_group_meta_data_lists)
         # print('seq_len: ', seq_len)
         bigdl_input_ids = []
+        bigdl_pos_ids = []
+        bigdl_attention_mask = []
         cur_seq_ids = []
         bigdl_sampling_params = {}
         max_context_len = 0
         all_decoding = True
+        all_prompt = True 
         for seq_group_meta_data in seq_group_meta_data_lists:
             req_id = seq_group_meta_data.request_id
             all_decoding = all_decoding and (not seq_group_meta_data.is_prompt)
+            all_prompt = all_prompt and seq_group_meta_data.is_prompt
             seq_ids = list(seq_group_meta_data.seq_data.keys())
             seq_id = seq_ids[0]
             cur_seq_ids.append(seq_id)
@@ -142,6 +151,7 @@ class BigDLLlamaForCausalLM(nn.Module):
                 max_context_len = max(max_context_len, context_len)
             else:
                 bigdl_input_ids.append([cur_seq_input_ids[-1]])
+                bigdl_pos_ids.append([seq_data.get_len()])
 
             bigdl_sampling_params[seq_id] = seq_group_meta_data.sampling_params
 
@@ -149,14 +159,10 @@ class BigDLLlamaForCausalLM(nn.Module):
         # print('all_decoding: ', all_decoding)
         if all_decoding:
             # pdb.set_trace()
-            if cur_seq_ids == self.last_seq_ids:
+            if (self.tmp_kv_cache is not None) and (list(self.tmp_kv_cache[0][0].shape)[2] < max_seq_limit) and cur_seq_ids == self.last_seq_ids:
                 bigdl_kv_cache = self.tmp_kv_cache
             else:
                 del self.tmp_kv_cache
-                # gc.collect()
-                torch.cuda.empty_cache()
-                if self.device == torch.device("xpu"):
-                    torch.xpu.empty_cache()
 
                 bigdl_kv_cache = []
                 for i in range(kv_cache_0):
@@ -170,6 +176,7 @@ class BigDLLlamaForCausalLM(nn.Module):
                             view_size = [1] + list(kv_cache[seq_id][i][j].shape)
                             if cur_view is None:
                                 cur_view = kv_cache[seq_id][i][j].view(view_size)
+                                # print('1: ', cur_view.shape)
                             else:
                                 if cur_view.size(2) != view_size[2]:
                                     max_len = max(cur_view.size(2), view_size[2])
@@ -178,20 +185,37 @@ class BigDLLlamaForCausalLM(nn.Module):
                                     cur_view = torch.cat((cur_view, tmp_view), dim = 0)
                                 else:
                                     cur_view = torch.cat((cur_view, kv_cache[seq_id][i][j].view(view_size)), dim = 0)
+                                    # print('2: ', cur_view.shape)
+                        if cur_view.size(2) > max_seq_limit:
+                            cur_view = _pad_kv_cache_view(cur_view, max_seq_limit, self.device)
                         cur_list.append(cur_view)
                     bigdl_kv_cache.append(cur_list)
 
         else:
             bigdl_input_ids = [
-                _pad_to_max(input_ids, max_context_len)
+                _pad_to_max(input_ids, max_context_len, self.pad_token_id)
                 for input_ids in bigdl_input_ids
             ]
 
+        if all_decoding:
+            cur_seq_len = bigdl_kv_cache[0][0].size(2)
+            for seq_group_meta_data in seq_group_meta_data_lists:
+                seq_ids = list(seq_group_meta_data.seq_data.keys())
+                seq_id = seq_ids[0]
+                seq_data = seq_group_meta_data.seq_data[seq_id]
+                cur_pos = seq_data.get_len()
+                cur_attention_mask = [0] * (cur_seq_len - cur_pos + 1) + [1] * (cur_pos)
+                bigdl_attention_mask.append(cur_attention_mask)
+
         bigdl_input_ids = torch.tensor(bigdl_input_ids, device=self.device)
+        bigdl_pos_ids = torch.tensor(bigdl_pos_ids, device=self.device)
+        bigdl_attention_mask = torch.tensor(bigdl_attention_mask, device=self.device)
         if all_decoding:
             kwargs = {
                 "input_ids": bigdl_input_ids,
+                "position_ids": bigdl_pos_ids,
                 "past_key_values": bigdl_kv_cache,
+                "attention_mask": bigdl_attention_mask,
                 "use_cache": True,
             }
         else:
@@ -206,57 +230,32 @@ class BigDLLlamaForCausalLM(nn.Module):
         # if self.device == torch.device("xpu"):
         #     torch.xpu.empty_cache()
         outputs = self.model.forward(**kwargs)
-        # torch.xpu.synchronize()
+        torch.xpu.synchronize()
         ed_timestamp = time.perf_counter()
         print("inference latency: ", ed_timestamp - st_timestamp)
 
         self.kv_cache_size = list(outputs.past_key_values[0][0].shape)
+        print('kv_cache_size: ', self.kv_cache_size)
+
         self.last_seq_ids = cur_seq_ids[:]
         self.tmp_kv_cache = outputs.past_key_values
 
-        # print(outputs.past_key_values[0][0].device)
         index = 0
         bigdl_output = []
         logits = outputs.logits[:, -1, :]
-        
         bigdl_output = self.sampler(logits, input_metadata)
-        ed_timestamp = time.perf_counter()
-        print("sampler latency: ", ed_timestamp - st_timestamp)
         for seq_id in cur_seq_ids:
-            # cur_sampling_params = bigdl_sampling_params[seq_id]
-            # logits_processor = prepare_logits_processor(
-            #     cur_sampling_params.temperature, 1, cur_sampling_params.top_p,
-            #     cur_sampling_params.top_k)
-
-            # last_token_logits = logits_processor(
-            #     None, outputs.logits[:, -1, :])[0]
-            # probs = torch.softmax(last_token_logits, dim=-1)
-            # indices = torch.multinomial(
-            #     probs, num_samples=cur_sampling_params.best_of)
-            # tokens = [int(token) for token in indices.tolist()]
-
-            # logprobs = math.log(probs[tokens[0]])
-            # seq_output = SequenceOutputs(parent_seq_id=seq_id,
-            #                              output_token=tokens[0],
-            #                              logprobs={tokens[0]: logprobs})
-            # bigdl_output.append([seq_output])
             if kv_cache.get(seq_id) is None:
                 kv_cache[seq_id] = [[[] for _ in range(kv_cache_1)]
                                     for _ in range(kv_cache_0)]
             for i in range(kv_cache_0):
                 for j in range(kv_cache_1):
-                    kv_cache[seq_id][i][j] = outputs.past_key_values[i][j][
-                        index]
-            # for i in range(kv_cache_0):
-            #     for j in range(kv_cache_1):
-            #         indices = torch.tensor([index], dtype=torch.long)
-            #         kv_cache[seq_id][i][j] = torch.index_select(
-            #             outputs.past_key_values[i][j], dim=0, index=indices
-            #         )
+                    kv_cache[seq_id][i][j] = outputs.past_key_values[i][j][index]
+
             index = index + 1
         ed_timestamp = time.perf_counter()
-        print("total latency: ", ed_timestamp - st_timestamp)
-        print('kv cache: ', kv_cache.keys())
+        # print("total latency: ", ed_timestamp - st_timestamp)
+        # print('kv cache: ', kv_cache.keys())
         
         # gc.collect()
         # torch.cuda.empty_cache()
