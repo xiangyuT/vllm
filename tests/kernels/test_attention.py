@@ -176,7 +176,7 @@ def test_paged_attention(
     # Call the paged attention kernel.
     output = torch.empty_like(query)
     if version == "v1":
-        ops.paged_attention_v1(
+        torch.xpu.paged_attention_v1(
             output,
             query,
             key_cache,
@@ -204,7 +204,7 @@ def test_paged_attention(
             dtype=torch.float32,
         )
         max_logits = torch.empty_like(exp_sums)
-        ops.paged_attention_v2(
+        torch.xpu.paged_attention_v2(
             output,
             exp_sums,
             max_logits,

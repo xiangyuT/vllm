@@ -99,7 +99,7 @@ def main(
 
         for _ in range(num_iters):
             if version == "v1":
-                ops.paged_attention_v1(
+                torch.xpu.paged_attention_v1(
                     output,
                     query,
                     key_cache,
@@ -114,7 +114,7 @@ def main(
                     kv_cache_dtype,
                 )
             elif version == "v2":
-                ops.paged_attention_v2(
+                torch.xpu.paged_attention_v2(
                     output,
                     exp_sums,
                     max_logits,

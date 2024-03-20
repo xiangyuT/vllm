@@ -301,7 +301,7 @@ def _paged_attention(
         max_num_partitions == 1 or num_seqs * num_heads > 512)
     if use_v1:
         # Run PagedAttention V1.
-        ops.paged_attention_v1(
+        torch.xpu.paged_attention_v1(
             output,
             query,
             key_cache,
@@ -329,7 +329,7 @@ def _paged_attention(
             device=output.device,
         )
         max_logits = torch.empty_like(exp_sums)
-        ops.paged_attention_v2(
+        torch.xpu.paged_attention_v2(
             output,
             exp_sums,
             max_logits,
