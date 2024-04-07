@@ -333,6 +333,9 @@ class AsyncLLMEngine:
         if engine_config.device_config.device_type == "neuron":
             raise NotImplementedError("Neuron is not supported for "
                                       "async engine yet.")
+        elif engine_config.device_config.device_type == "cpu":
+            from vllm.executor.cpu_executor import CPUExecutorAsync
+            executor_class = CPUExecutorAsync
         elif (engine_config.parallel_config.worker_use_ray
               or engine_args.engine_use_ray):
             initialize_ray_cluster(engine_config.parallel_config)
