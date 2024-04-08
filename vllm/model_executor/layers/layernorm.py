@@ -48,7 +48,10 @@ class RMSNorm(nn.Module):
         x: torch.Tensor,
         residual: Optional[torch.Tensor] = None,
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
+        x = x.to(dtype=self.weight.data.dtype)
         if residual is not None:
+            # import pdb
+            # pdb.set_trace()
             ops.fused_add_rms_norm(
                 x,
                 residual,

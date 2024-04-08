@@ -100,4 +100,8 @@ def get_model(model_config: ModelConfig, device_config: DeviceConfig,
             # Load the weights from the cached or downloaded files.
             model.load_weights(model_config.model, model_config.download_dir,
                                model_config.load_format, model_config.revision)
-    return model.eval()
+    model = model.eval()
+    from ipex_llm import optimize_model
+    optimize_model(model, low_bit="sym_int4", torch_dtype=model_config.dtype)
+    model = model.to(device=device_config.device, dtype=model_config.dtype)
+    return model

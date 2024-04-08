@@ -142,7 +142,7 @@ class RotaryEmbedding(nn.Module):
         key: torch.Tensor,
         offsets: Optional[torch.Tensor] = None,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        self.cos_sin_cache = self.cos_sin_cache.to(positions.device)
+        self.cos_sin_cache = self.cos_sin_cache.to(positions.device, dtype=query.dtype)
         # ops.rotary_embedding()/batched_rotary_embedding()
         # are in-place operations that update the query and key tensors.
         if offsets is not None:
@@ -151,6 +151,9 @@ class RotaryEmbedding(nn.Module):
                                          self.is_neox_style, self.rotary_dim,
                                          offsets)
         else:
+            # import pdb
+            # pdb.set_trace()
+            
             ops.rotary_embedding(positions, query, key, self.head_size,
                                  self.cos_sin_cache, self.is_neox_style)
         return query, key

@@ -1,0 +1,19 @@
+--- convert.py	2024-03-22 13:59:43.284449178 +0800
++++ /home/arda/guancheng/temp/convert.py	2024-03-22 13:59:33.768313727 +0800
+@@ -87,8 +87,14 @@
+     mp_group = None
+ 
+     is_awq = is_auto_awq_available() and isinstance(module, WQLinear_GEMM)
+-
+-    if is_auto_gptq_available() and isinstance(module, QuantLinearCudaOld):
++    from vllm.model_executor.layers.linear import ColumnParallelLinear, RowParallelLinear
++    from vllm.model_executor.layers.vocab_parallel_embedding import ParallelLMHead
++    if isinstance(module, ColumnParallelLinear) or isinstance(module, RowParallelLinear):
++        in_features = module.input_size
++        out_features = module.output_size
++        result = True
++        mp_group = None
++    elif is_auto_gptq_available() and isinstance(module, QuantLinearCudaOld):
+         in_features = module.infeatures
+         out_features = module.outfeatures
+         mp_group = None

@@ -1,0 +1,16 @@
+--- optimize.py	2024-03-22 13:59:43.284449178 +0800
++++ /home/arda/guancheng/temp/optimize.py	2024-03-22 13:58:57.667799888 +0800
+@@ -230,9 +230,9 @@
+     invalidInputError(isinstance(model, torch.nn.Module),
+                       "model should be an instance of "
+                       f"`torch.nn.Module`, but got {type(model)} at last.")
+-    invalidInputError(model.device.type in ('cpu', 'meta'),
+-                      "Expect model on device `cpu` or `meta`, "
+-                      f"but got device type {model.device.type}")
++    #invalidInputError(model.device.type in ('cpu', 'meta'),
++    #                  "Expect model on device `cpu` or `meta`, "
++    #                  f"but got device type {model.device.type}")
+     if kwargs.pop("replace_embedding", False):
+         warnings.warn("replace_embedding is deprecated and will be removed in a future version,"
+                       " please use cpu_embedding instead.", FutureWarning)
+                       
