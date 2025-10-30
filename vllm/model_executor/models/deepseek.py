@@ -30,6 +30,7 @@ from typing import Any
 
 import torch
 from torch import nn
+import torch.nn.functional as F
 from transformers import PretrainedConfig
 
 from vllm.attention import Attention
@@ -178,16 +179,85 @@ class DeepseekMoE(nn.Module):
         # router_logits: (num_tokens, n_experts)
         router_logits, _ = self.gate(hidden_states)
 
-        topk_weights, topk_ids, _ = fused_topk(
-            hidden_states,
-            router_logits,
-            self.top_k,
-            renormalize=self.config.norm_topk_prob,
-        )
+        # topk_weights, topk_ids, _ = fused_topk(
+        #     hidden_states,
+        #     router_logits,
+        #     self.top_k,
+        #     renormalize=self.config.norm_topk_prob,
+        # )
 
-        final_hidden_states = fused_experts(
-            hidden_states, self.w1, self.w2, topk_weights, topk_ids, inplace=True
-        )
+        # final_hidden_states = fused_experts(
+        #     hidden_states, self.w1, self.w2, topk_weights, topk_ids, inplace=True
+        # )
+
+        def custom_histogram(indices, min, max):
+            bin_counts = torch.histc(indices, bins=max - min + 1, min=min, max=max).to(torch.int32)
+            return bin_counts
+
+        def custom_gmm(x, w, group_sizes, out_len):
+            result = torch.zeros(
+                    (x.shape[0], out_len),
+                    dtype=x.dtype,
+                    device=x.device
+                )
+            start = 0
+            i = 0
+            for end_index in group_sizes.tolist():
+                if end_index > 0:
+                    end = start + end_index
+                    result[start:end] = torch.matmul(x[start:end], w[i].T)
+                    start = end
+                i += 1
+            return result
+
+        w1 = self.w1
+        w2 = self.w2
+        gating_output = router_logits
+        topk = self.top_k
+        renormalize = self.config.norm_topk_prob
+
+        orig_shape = hidden_states.shape
+        orig_dtype = hidden_states.dtype
+        hidden_size = hidden_states.shape[-1]
+        num_tokens = hidden_states.shape[:-1].numel()
+        num_experts = w1.size(0)
+        intermediate_size = w2.size(-1)
+
+        device = hidden_states.device
+        dtype = hidden_states.dtype
+        hidden_states = hidden_states.view(num_tokens, hidden_size)
+
+        topk_weights, topk_indices = F.softmax(
+            gating_output, dim=-1, dtype=torch.float
+        ).topk(topk, dim=-1)
+        if renormalize:
+            topk_weights = topk_weights / topk_weights.sum(dim=-1, keepdim=True)
+
+        # if expert_map is not None:
+        #     expert_map = expert_map.to(device=device)
+        #     topk_indices = expert_map[topk_indices]
+
+        topk_indices = topk_indices.flatten()
+        topk_argsort_indices = topk_indices.argsort()
+        topk_argsort_revert_indices = topk_argsort_indices.argsort()
+        token_indices = torch.arange(num_tokens, device=device).repeat_interleave(topk)
+        token_indices = token_indices[topk_argsort_indices]
+        group_sizes = custom_histogram(topk_indices.to(torch.int32), 0, num_experts - 1)
+
+        x = hidden_states[token_indices]
+
+        x = custom_gmm(x, w1, group_sizes, intermediate_size * 2)
+        x = F.silu(x[..., :intermediate_size]) * x[..., intermediate_size:]
+        # output = torch.zeros((x.shape[0], intermediate_size), device=x.device, dtype=x.dtype)
+        # ipex_ops.silu_and_mul(output, x)
+        # x = output
+        x = custom_gmm(x, w2, group_sizes, hidden_size)
+        x = x[topk_argsort_revert_indices].reshape(-1, topk, hidden_size)
+
+        x = x * topk_weights.unsqueeze_(dim=-1)
+        x = x.sum(dim=-2)
+        x = x.reshape(orig_shape).to(orig_dtype)
+        final_hidden_states = x
 
         if self.config.n_shared_experts is not None:
             final_hidden_states = final_hidden_states + shared_output
