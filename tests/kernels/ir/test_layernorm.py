@@ -19,6 +19,54 @@ from vllm.platforms import current_platform
 rms_norm_native = ir.ops.rms_norm.impls["native"].impl_fn
 
 
+@pytest.mark.skipif(not current_platform.is_xpu(), reason="XPU-only mixed weights")
+@pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16])
+@pytest.mark.parametrize("residual", [False, True])
+@torch.inference_mode()
+def test_xpu_gemma_mixed_weight_dispatch(dtype, residual, default_vllm_config):
+    from vllm.model_executor.layers.layernorm import GemmaRMSNorm
+
+    torch.manual_seed(42)
+    default_vllm_config.compilation_config.custom_ops = ["all"]
+    layer = GemmaRMSNorm(5120).to(device="xpu", dtype=dtype)
+    layer.weight.normal_(mean=0.0, std=0.1)
+    x = torch.randn((1, 5120), device="xpu", dtype=dtype)
+    res = torch.randn_like(x) if residual else None
+    weight = layer.weight.float() + 1.0
+    op = ir.ops.fused_add_rms_norm if residual else ir.ops.rms_norm
+    args = (
+        (x, res, weight, layer.variance_epsilon)
+        if residual
+        else (x, weight, layer.variance_epsilon)
+    )
+    assert op.impls["xpu_kernels"].supports_args(*args)
+    ref = op.impls["native"].impl_fn(*clone_args(args))
+    x_ptr = x.data_ptr()
+    res_ptr = res.data_ptr() if res is not None else None
+    with op.set_priority(["xpu_kernels"]):
+        out = layer(x, res)
+    assert_close(op, out, ref)
+    if residual:
+        assert out[0].data_ptr() == x_ptr
+        assert out[1].data_ptr() == res_ptr
+
+
+@pytest.mark.skipif(not current_platform.is_xpu(), reason="XPU-only mixed weights")
+@torch.inference_mode()
+def test_xpu_mixed_weight_functional_call_preserves_inputs():
+    x = torch.randn((1, 256), device="xpu", dtype=torch.float16)
+    residual = torch.randn_like(x)
+    weight = torch.randn(256, device="xpu", dtype=torch.float32)
+    x_before, residual_before = x.clone(), residual.clone()
+    op = ir.ops.fused_add_rms_norm
+    with op.set_priority(["xpu_kernels"]):
+        actual = op(x, residual, weight, 1e-6)
+    reference = op.impls["native"].impl_fn(x_before, residual_before, weight, 1e-6)
+    assert_close(op, actual, reference)
+    torch.testing.assert_close(x, x_before, atol=0, rtol=0)
+    torch.testing.assert_close(residual, residual_before, atol=0, rtol=0)
+
+
 @pytest.mark.skipif(
     not current_platform.is_cuda_alike() and not current_platform.is_xpu(),
     reason="Currently only kernels on CUDA, ROCm and XPU",
@@ -384,3 +432,33 @@ class TestFusedAddRMSNorm:
                 torch.library.opcheck(
                     torch.ops.vllm_ir.fused_add_rms_norm.maybe_inplace, args
                 )
+
+
+@pytest.mark.skipif(not current_platform.is_xpu(), reason="XPU gated Norm")
+@pytest.mark.parametrize("mode", ["decode", "gate_before_norm", "strided"])
+@torch.inference_mode()
+def test_xpu_gated_norm_matches_triton(mode, default_vllm_config):
+    from vllm.model_executor.layers.layernorm import RMSNormGated
+
+    default_vllm_config.compilation_config.custom_ops = ["all"]
+    layer = RMSNormGated(
+        128,
+        eps=1e-6,
+        norm_before_gate=mode != "gate_before_norm",
+        activation="silu",
+        device="xpu",
+        dtype=torch.float16,
+    )
+    torch.manual_seed(42)
+    x = torch.randn(
+        24, 256 if mode == "strided" else 128, device="xpu", dtype=torch.float16
+    )
+    if mode == "strided":
+        x = x[:, ::2]
+    z = torch.randn_like(x)
+    original_x, original_z = x.clone(), z.clone()
+    expected = layer.forward_cuda(x, z)
+    actual = layer(x, z)
+    torch.testing.assert_close(actual, expected, atol=2e-3, rtol=2e-3)
+    torch.testing.assert_close(x, original_x, atol=0, rtol=0)
+    torch.testing.assert_close(z, original_z, atol=0, rtol=0)
