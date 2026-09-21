@@ -32,7 +32,6 @@ adapter/projection stack.
 """
 
 import math
-import os
 from collections.abc import Iterable, Mapping, Sequence
 from itertools import islice
 from typing import Annotated, Literal
@@ -44,7 +43,6 @@ from PIL import Image
 from torch import nn
 from transformers import BatchFeature
 
-from vllm import _custom_ops as ops
 from vllm.compilation.decorators import support_torch_compile
 from vllm.config import CacheConfig, VllmConfig
 from vllm.config.multimodal import BaseDummyOptions
@@ -1144,11 +1142,6 @@ class MuseGlimmerAttention(nn.Module):
         if self.use_qk_norm:
             # Weightless, computed in fp32, applied per head over head_dim.
             self.qk_norm = MuseGlimmerRMSNorm(eps=config.rms_norm_eps, with_scale=False)
-            self._decode_qk_norm_enabled = (
-                os.environ.get("DISABLE_MUSE_GLIMMER_DECODE_QK_NORM", "0")
-                != "1"
-            )
-            self._decode_qk_norm_weight = None
             # Post-QK-norm query pre-scale, normalized across the native (raw
             # ~43.78) and modular (pre-folded ~3.87) config schemas.
             self.scale_query_by = _muse_glimmer_query_prescale(config)
@@ -1208,30 +1201,6 @@ class MuseGlimmerAttention(nn.Module):
             prefix=f"{prefix}.attn",
         )
 
-    def _apply_qk_norm(self, hidden_states: torch.Tensor) -> torch.Tensor:
-        fast_norm_enabled = (
-            self._decode_qk_norm_enabled
-            and not torch.compiler.is_compiling()
-            and hidden_states.ndim == 2
-            and 1 <= hidden_states.shape[0] <= 128
-            and hidden_states.shape[1] == self.head_dim
-            and hidden_states.dtype == torch.float16
-            and hidden_states.device.type == "xpu"
-            and hidden_states.is_contiguous()
-        )
-        if not fast_norm_enabled:
-            return self.qk_norm(hidden_states)
-
-        weight = self._decode_qk_norm_weight
-        if weight is None or weight.device != hidden_states.device:
-            weight = torch.ones(
-                (self.head_dim,), device=hidden_states.device, dtype=torch.float16
-            )
-            self._decode_qk_norm_weight = weight
-        result = torch.empty_like(hidden_states)
-        ops.rms_norm(result, hidden_states, weight, self.qk_norm.eps)
-        return result
-
     def forward(
         self,
         positions: torch.Tensor,
@@ -1243,9 +1212,9 @@ class MuseGlimmerAttention(nn.Module):
         if self.use_qk_norm:
             # QK-norm over head_dim, fp32, applied BEFORE RoPE; then pre-scale q.
             q = q.reshape(-1, self.head_dim)
-            q = self._apply_qk_norm(q).reshape(-1, self.q_size) * self.scale_query_by
+            q = self.qk_norm(q).reshape(-1, self.q_size) * self.scale_query_by
             k = k.reshape(-1, self.head_dim)
-            k = self._apply_qk_norm(k).reshape(-1, self.kv_size)
+            k = self.qk_norm(k).reshape(-1, self.kv_size)
             q = q.to(v.dtype)
             k = k.to(v.dtype)
 
@@ -1299,46 +1268,6 @@ class MuseGlimmerDecoderLayer(nn.Module):
         self.post_feedforward_layernorm = MuseGlimmerRMSNorm(
             config.hidden_size, eps=config.post_norm_eps, weight_offset=1
         )
-        # MuseGlimmerRMSNorm intentionally mirrors the HF implementation and
-        # otherwise expands into an FP32 Python elementwise chain.  For the
-        # XPU decode shape, use the existing XPU RMSNorm op with a cached FP16
-        # copy of (weight + offset).  Keep this model-local and narrowly
-        # guarded; prefill, non-XPU, non-FP16 and compile paths retain the
-        # reference implementation.
-        self._decode_norm_enabled = (
-            os.environ.get("DISABLE_MUSE_GLIMMER_DECODE_NORM", "0") != "1"
-        )
-        self._decode_norm_max_tokens = 1
-
-    def _standalone_norm(
-        self,
-        hidden_states: torch.Tensor,
-        norm: MuseGlimmerRMSNorm,
-        weight_attr: str,
-    ) -> torch.Tensor:
-        num_tokens = hidden_states.shape[0] if hidden_states.ndim == 2 else 0
-        fast_norm_enabled = (
-            self._decode_norm_enabled
-            and num_tokens == self._decode_norm_max_tokens
-            and hidden_states.is_contiguous()
-            and hidden_states.dtype == torch.float16
-            and hidden_states.device.type == "xpu"
-            and norm.with_scale
-            and norm.weight is not None
-        )
-        if not fast_norm_enabled:
-            return norm(hidden_states)
-
-        weight = getattr(self, weight_attr, None)
-        if weight is None or weight.device != hidden_states.device:
-            weight = (
-                norm.weight.data + norm.weight_offset
-            ).to(device=hidden_states.device, dtype=torch.float16).contiguous()
-            setattr(self, weight_attr, weight)
-
-        result = torch.empty_like(hidden_states)
-        ops.rms_norm(result, hidden_states, weight, norm.eps)
-        return result
 
     def forward(
         self,
@@ -1348,29 +1277,15 @@ class MuseGlimmerDecoderLayer(nn.Module):
     ) -> tuple[torch.Tensor, torch.Tensor]:
         # Gemma2-style sandwich, replicated explicitly (matches HF MuseGlimmer).
         residual = hidden_states
-        hidden_states = self._standalone_norm(
-            hidden_states, self.input_layernorm, "_input_norm_weight"
-        )
+        hidden_states = self.input_layernorm(hidden_states)
         hidden_states = self.self_attn(positions=positions, hidden_states=hidden_states)
-        hidden_states = self._standalone_norm(
-            hidden_states,
-            self.post_attention_layernorm,
-            "_post_attention_norm_weight",
-        )
+        hidden_states = self.post_attention_layernorm(hidden_states)
         hidden_states = residual + hidden_states
 
         residual = hidden_states
-        hidden_states = self._standalone_norm(
-            hidden_states,
-            self.pre_feedforward_layernorm,
-            "_pre_feedforward_norm_weight",
-        )
+        hidden_states = self.pre_feedforward_layernorm(hidden_states)
         hidden_states = self.mlp(hidden_states)
-        hidden_states = self._standalone_norm(
-            hidden_states,
-            self.post_feedforward_layernorm,
-            "_post_feedforward_norm_weight",
-        )
+        hidden_states = self.post_feedforward_layernorm(hidden_states)
         hidden_states = residual + hidden_states
         return hidden_states, residual
 
