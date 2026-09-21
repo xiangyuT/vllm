@@ -1144,6 +1144,11 @@ class MuseGlimmerAttention(nn.Module):
         if self.use_qk_norm:
             # Weightless, computed in fp32, applied per head over head_dim.
             self.qk_norm = MuseGlimmerRMSNorm(eps=config.rms_norm_eps, with_scale=False)
+            self._decode_qk_norm_enabled = (
+                os.environ.get("DISABLE_MUSE_GLIMMER_DECODE_QK_NORM", "0")
+                != "1"
+            )
+            self._decode_qk_norm_weight = None
             # Post-QK-norm query pre-scale, normalized across the native (raw
             # ~43.78) and modular (pre-folded ~3.87) config schemas.
             self.scale_query_by = _muse_glimmer_query_prescale(config)
@@ -1203,6 +1208,30 @@ class MuseGlimmerAttention(nn.Module):
             prefix=f"{prefix}.attn",
         )
 
+    def _apply_qk_norm(self, hidden_states: torch.Tensor) -> torch.Tensor:
+        fast_norm_enabled = (
+            self._decode_qk_norm_enabled
+            and not torch.compiler.is_compiling()
+            and hidden_states.ndim == 2
+            and 1 <= hidden_states.shape[0] <= 128
+            and hidden_states.shape[1] == self.head_dim
+            and hidden_states.dtype == torch.float16
+            and hidden_states.device.type == "xpu"
+            and hidden_states.is_contiguous()
+        )
+        if not fast_norm_enabled:
+            return self.qk_norm(hidden_states)
+
+        weight = self._decode_qk_norm_weight
+        if weight is None or weight.device != hidden_states.device:
+            weight = torch.ones(
+                (self.head_dim,), device=hidden_states.device, dtype=torch.float16
+            )
+            self._decode_qk_norm_weight = weight
+        result = torch.empty_like(hidden_states)
+        ops.rms_norm(result, hidden_states, weight, self.qk_norm.eps)
+        return result
+
     def forward(
         self,
         positions: torch.Tensor,
@@ -1214,9 +1243,9 @@ class MuseGlimmerAttention(nn.Module):
         if self.use_qk_norm:
             # QK-norm over head_dim, fp32, applied BEFORE RoPE; then pre-scale q.
             q = q.reshape(-1, self.head_dim)
-            q = self.qk_norm(q).reshape(-1, self.q_size) * self.scale_query_by
+            q = self._apply_qk_norm(q).reshape(-1, self.q_size) * self.scale_query_by
             k = k.reshape(-1, self.head_dim)
-            k = self.qk_norm(k).reshape(-1, self.kv_size)
+            k = self._apply_qk_norm(k).reshape(-1, self.kv_size)
             q = q.to(v.dtype)
             k = k.to(v.dtype)
 
