@@ -42,6 +42,63 @@ def test_rms_norm_registration():
     assert actual == expected
 
 
+@pytest.mark.skipif(not current_platform.is_xpu(), reason="XPU-only Gemma RMSNorm")
+@pytest.mark.parametrize("residual", [False, True])
+@torch.inference_mode()
+def test_xpu_gemma_rms_norm_dispatch(residual, default_vllm_config):
+    """The XPU Gemma path preserves native semantics and residual aliases."""
+    if not hasattr(torch.ops._C, "gemma_rms_norm"):
+        pytest.skip("Gemma RMSNorm kernel is not available")
+
+    from vllm.model_executor.layers.layernorm import GemmaRMSNorm
+
+    default_vllm_config.compilation_config.custom_ops = ["all"]
+    layer = GemmaRMSNorm(256, eps=1e-6).to(device="xpu", dtype=torch.float16)
+    layer.weight.normal_(mean=0.0, std=0.1)
+    x = torch.randn((1, 256), device="xpu", dtype=torch.float16)
+    residual_tensor = torch.randn_like(x) if residual else None
+
+    weight = layer.weight.float() + 1.0
+    x_ref = x.clone()
+    residual_ref = residual_tensor.clone() if residual_tensor is not None else None
+    if residual:
+        ref = ir.ops.fused_add_rms_norm.impls["native"].impl_fn(
+            x_ref, residual_ref, weight, layer.variance_epsilon
+        )
+    else:
+        ref = ir.ops.rms_norm.impls["native"].impl_fn(
+            x_ref, weight, layer.variance_epsilon
+        )
+
+    x_ptr = x.data_ptr()
+    residual_ptr = residual_tensor.data_ptr() if residual_tensor is not None else None
+    actual = layer(x, residual_tensor)
+
+    if residual:
+        assert actual[0].data_ptr() == x_ptr
+        assert actual[1].data_ptr() == residual_ptr
+        torch.testing.assert_close(actual[0], ref[0], atol=2e-3, rtol=2e-3)
+        torch.testing.assert_close(actual[1], ref[1], atol=0, rtol=0)
+    else:
+        torch.testing.assert_close(actual, ref, atol=2e-3, rtol=2e-3)
+
+
+@pytest.mark.skipif(not current_platform.is_xpu(), reason="XPU-only weightless RMSNorm")
+@torch.inference_mode()
+def test_xpu_weightless_rms_norm_dispatch(default_vllm_config):
+    """Weightless RMSNorm reaches the optional-weight XPU kernel path."""
+    default_vllm_config.compilation_config.custom_ops = ["all"]
+    layer = RMSNorm(128, eps=1e-6, has_weight=False).to(
+        device="xpu", dtype=torch.float16
+    )
+    x = torch.randn((2, 128), device="xpu", dtype=torch.float16)
+    ref = ir.ops.rms_norm.impls["native"].impl_fn(
+        x.clone(), None, layer.variance_epsilon
+    )
+    actual = layer(x)
+    torch.testing.assert_close(actual, ref, atol=2e-3, rtol=2e-3)
+
+
 @pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16, torch.float32])
 @pytest.mark.parametrize("n_tokens", NUM_TOKENS)
 @pytest.mark.parametrize("hidden_size", COMMON_HIDDEN_SIZES)
