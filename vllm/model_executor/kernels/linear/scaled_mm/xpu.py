@@ -2,6 +2,7 @@
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 
 import math
+import os
 from collections.abc import Sequence
 
 import torch
@@ -18,6 +19,8 @@ from vllm.platforms import current_platform
 
 from .BlockScaledMMLinearKernel import Fp8BlockScaledMMLinearKernel
 from .ScaledMMLinearKernel import FP8ScaledMMLinearKernel, FP8ScaledMMLinearLayerConfig
+
+_BLOCK_FP8_HYBRID = os.environ.get("VLLM_XPU_FP8_BLOCK_HYBRID") == "1"
 
 
 class XPUW8A8FP8LinearKernel(FP8ScaledMMLinearKernel):
@@ -197,6 +200,54 @@ class XPUFp8BlockScaledMMKernel(Fp8BlockScaledMMLinearKernel):
         if not current_platform.is_xpu():
             return False, "XPUFp8BlockScaledMM only support on XPU"
         return True, None
+
+    def apply_weights(
+        self,
+        layer: torch.nn.Module,
+        x: torch.Tensor,
+        bias: torch.Tensor | None = None,
+        **kwargs,
+    ) -> torch.Tensor:
+        if (
+            not _BLOCK_FP8_HYBRID
+            or not hasattr(torch.ops._xpu_C, "fp8_gemm_block_decode")
+            or kwargs
+            or getattr(layer, "is_bmm", False)
+        ):
+            return super().apply_weights(layer, x, bias, **kwargs)
+
+        params = self._get_layer_params(layer)
+        weight = params.weight
+        scale = params.block_scale
+        n, k = weight.shape
+        if not (
+            self.weight_group_shape == (128, 128)
+            and x.dtype == torch.float16
+            and self.config.out_dtype == torch.float16
+            and weight.dtype == torch.float8_e4m3fn
+            and weight.is_contiguous()
+            and scale.dtype == torch.float32
+            and scale.shape == (n // 128, k // 128)
+            and scale.stride() == (1, n // 128)
+            and n % 128 == 0
+            and k % 128 == 0
+            and x.shape[-1] == k
+        ):
+            return super().apply_weights(layer, x, bias, **kwargs)
+
+        input_2d = x.view(-1, k)
+        q_input, input_scale = self.quant_fp8(
+            input_2d,
+            params.input_scale,
+            params.input_scale_ub,
+            use_triton=self.use_triton,
+        )
+        output = torch.ops._xpu_C.fp8_gemm_block_decode(
+            input_2d, q_input, weight.t(), input_scale, scale.t()
+        )
+        if bias is not None:
+            output = output + bias
+        return output.to(dtype=self.config.out_dtype).view(*x.shape[:-1], n)
 
     def process_weights_after_loading(self, layer: torch.nn.Module):
         super().process_weights_after_loading(layer)

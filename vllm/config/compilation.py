@@ -2,6 +2,7 @@
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 
 import enum
+import os
 from collections import Counter
 from collections.abc import Callable
 from dataclasses import field, fields
@@ -822,6 +823,13 @@ class CompilationConfig:
 
         factors["pass_config"] = self.pass_config.compute_hash()
         factors["dynamic_shapes_config"] = self.dynamic_shapes_config.compute_hash()
+        if current_platform.is_xpu():
+            # The FP8 block linear provider chooses a different graph when
+            # this opt-in is enabled. Keep its AOT cache separate from the
+            # default W8A8 graph when the same model/cache root is reused.
+            factors["xpu_fp8_block_hybrid"] = (
+                os.environ.get("VLLM_XPU_FP8_BLOCK_HYBRID") == "1"
+            )
         return hash_factors(factors)
 
     def __repr__(self) -> str:

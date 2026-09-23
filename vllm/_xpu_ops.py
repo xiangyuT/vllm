@@ -57,6 +57,23 @@ if hasattr(torch.ops._xpu_C, "fp8_gemm_w8a16"):
         return torch.empty((M, N), dtype=input.dtype, device=input.device)
 
 
+if hasattr(torch.ops._xpu_C, "fp8_gemm_block_decode"):
+
+    @register_fake("_xpu_C::fp8_gemm_block_decode")
+    def _fp8_gemm_block_decode_fake(
+        input: torch.Tensor,
+        quant_input: torch.Tensor,
+        q_weight: torch.Tensor,
+        input_scale: torch.Tensor,
+        weight_scale: torch.Tensor,
+    ) -> torch.Tensor:
+        return torch.empty(
+            (input.shape[0], q_weight.shape[1]),
+            dtype=input.dtype,
+            device=input.device,
+        )
+
+
 if hasattr(torch.ops._xpu_C, "fp4_gemm"):
 
     @register_fake("_xpu_C::fp4_gemm")
