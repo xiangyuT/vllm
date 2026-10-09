@@ -132,6 +132,10 @@ _REASONING_PARSERS_TO_REGISTER = {
         "mistral_reasoning_parser",
         "MistralParserReasoningAdapter",
     ),
+    "minicpmv": (
+        "minicpmv_reasoning_parser",
+        "MiniCPMVParserReasoningAdapter",
+    ),
     "nemotron_v3": (
         "nemotron_v3_engine_reasoning_parser",
         "NemotronV3ParserReasoningAdapter",
