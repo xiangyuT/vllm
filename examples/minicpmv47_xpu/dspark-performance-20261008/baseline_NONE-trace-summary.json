@@ -1,0 +1,30 @@
+[
+  {
+    "trace": "dspark-performance-20261008/traces/baseline_NONE/baseline_NONE_decode_dp0_pp0_tp0_dcp0_ep0_rank0.1791467721548935867.pt.trace.json.gz",
+    "relevant_ops": {
+      "_xpu_C::fp8_gemm_w8a16_pair": 4,
+      "vllm::gdn_attention_core_xpu": 120,
+      "_xpu_C::gdn_attention": 120,
+      "_xpu_C::gated_rmsnorm_fp8_gemm": 120,
+      "vllm::xpu_moe_shared_fused_resadd_norm": 160,
+      "_xpu_C::moe_shared_fused_decode_interface": 160,
+      "_xpu_C::resadd_rmsnorm_fp8_gemm_pair": 116,
+      "_xpu_C::resadd_rmsnorm_fp8_gemm": 40,
+      "_xpu_C::qkv_split_norm_rope": 40
+    }
+  },
+  {
+    "trace": "dspark-performance-20261008/traces/baseline_NONE/baseline_NONE_decode_dp0_pp0_tp1_dcp0_ep1_rank1.1791467721557999809.pt.trace.json.gz",
+    "relevant_ops": {
+      "_xpu_C::fp8_gemm_w8a16_pair": 4,
+      "vllm::gdn_attention_core_xpu": 120,
+      "_xpu_C::gdn_attention": 120,
+      "_xpu_C::gated_rmsnorm_fp8_gemm": 120,
+      "vllm::xpu_moe_shared_fused_resadd_norm": 160,
+      "_xpu_C::moe_shared_fused_decode_interface": 160,
+      "_xpu_C::resadd_rmsnorm_fp8_gemm_pair": 116,
+      "_xpu_C::resadd_rmsnorm_fp8_gemm": 40,
+      "_xpu_C::qkv_split_norm_rope": 40
+    }
+  }
+]

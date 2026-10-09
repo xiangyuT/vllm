@@ -1,0 +1,10 @@
+{
+  "base_revision": "95307ac6d4cd8be2c1e38f236e9104c569af9025",
+  "source_manifest": "functional-20261008/source-manifest.json",
+  "native_sha256": {
+    "performance-20261008/bf16-performance.so": "4ca392356f7e8e671a37db5157f64e62242d84134bb1705ee397d4313608011a",
+    "dspark-gpu01-20261008/_minicpm_dspark_fa2.abi3.so": "3025d2cc09c83eed580ea22fbcf6e523842bb2ac9793b6847ae9f6d45fbd385e",
+    "dspark-gpu01-20261008/libminicpm_dspark_attn_kernels.so": "60b962f71c686b8763377fdd3daf92d227143e03cf18452e31db38c8173f5a5c"
+  },
+  "all_prior_source_hashes_preserved": true
+}

@@ -1,0 +1,864 @@
+--- a/csrc/moe/moe_router_decode.cpp
++++ b/csrc/moe/moe_router_decode.cpp
+@@ -80,9 +80,11 @@
+ 
+ namespace syclex = sycl::ext::oneapi::experimental;
+ 
+-// Sub-group block load / store of 128 contiguous matching fp16/bf16 (16-byte aligned).
+-template <typename Scalar>
+-static inline Scalar8<Scalar> sg_load8(const sycl::sub_group& sg, const Scalar* p) {
++// Sub-group block load / store of 128 contiguous matching fp16/bf16 (16-byte
++// aligned).
++template <typename Scalar>
++static inline Scalar8<Scalar>
++sg_load8(const sycl::sub_group& sg, const Scalar* p) {
+   Scalar8<Scalar> v;
+   syclex::group_load(
+       sg,
+@@ -172,7 +174,8 @@
+ }
+ 
+ template <typename Scalar>
+-static inline float router_dot8(const Scalar8<Scalar>& u, const Scalar8<Scalar>& v, float acc) {
++static inline float
++router_dot8(const Scalar8<Scalar>& u, const Scalar8<Scalar>& v, float acc) {
+ #pragma unroll
+   for (int j = 0; j < 8; ++j) {
+     acc = sycl::fma(static_cast<float>(u[j]), static_cast<float>(v[j]), acc);
+@@ -181,7 +184,8 @@
+ }
+ 
+ template <typename Scalar>
+-static inline float router_sumsq8(const Scalar8<Scalar>& xv, const Scalar8<Scalar>& rv, float acc) {
++static inline float
++router_sumsq8(const Scalar8<Scalar>& xv, const Scalar8<Scalar>& rv, float acc) {
+ #pragma unroll
+   for (int j = 0; j < 8; ++j) {
+     const float s = static_cast<float>(xv[j]) + static_cast<float>(rv[j]);
+@@ -192,20 +196,23 @@
+ 
+ // normed = fp16(((x + r) * rs) * (1 + g)), fp32 math
+ template <typename Scalar>
+-static inline Scalar8<Scalar>
+-router_norm8(const Scalar8<Scalar>& xv, const Scalar8<Scalar>& rv, const Scalar8<Scalar>& gv, float rs) {
++static inline Scalar8<Scalar> router_norm8(
++    const Scalar8<Scalar>& xv,
++    const Scalar8<Scalar>& rv,
++    const Scalar8<Scalar>& gv,
++    float rs) {
+   Scalar8<Scalar> o;
+ #pragma unroll
+   for (int j = 0; j < 8; ++j) {
+     const float s = static_cast<float>(xv[j]) + static_cast<float>(rv[j]);
+-    o[j] =
+-        static_cast<Scalar>((s * rs) * (static_cast<float>(gv[j]) + 1.0f));
++    o[j] = static_cast<Scalar>((s * rs) * (static_cast<float>(gv[j]) + 1.0f));
+   }
+   return o;
+ }
+ 
+ template <typename Scalar>
+-static inline Scalar8<Scalar> router_add8(const Scalar8<Scalar>& xv, const Scalar8<Scalar>& rv) {
++static inline Scalar8<Scalar>
++router_add8(const Scalar8<Scalar>& xv, const Scalar8<Scalar>& rv) {
+   Scalar8<Scalar> o;
+ #pragma unroll
+   for (int j = 0; j < 8; ++j) {
+@@ -334,13 +341,15 @@
+ 
+     // Row m of this work-group (rows past mloc re-read row0; dropped).
+     auto row = [&](int m) { return row0 + (m < mloc ? m : 0); };
+-    auto load_rows =
+-        [&](const Scalar* base, int64_t stride, int k, Scalar8<Scalar>(&out)[MR]) {
+-#pragma unroll
+-          for (int m = 0; m < MR; ++m) {
+-            out[m] = sg_load8(sg, base + row(m) * stride + k);
+-          }
+-        };
++    auto load_rows = [&](const Scalar* base,
++                         int64_t stride,
++                         int k,
++                         Scalar8<Scalar>(&out)[MR]) {
++#pragma unroll
++      for (int m = 0; m < MR; ++m) {
++        out[m] = sg_load8(sg, base + row(m) * stride + k);
++      }
++    };
+ 
+     float acc[kR][MR];
+ #pragma unroll
+@@ -394,7 +403,8 @@
+         for (int i = 0; i < kOwnRows; ++i) {
+           if (own(i) < MR) {
+             const int k = b * kBlk;
+-            const Scalar8<Scalar> xv = sg_load8(sg, a.x + row(own(i)) * a.x_stride + k);
++            const Scalar8<Scalar> xv =
++                sg_load8(sg, a.x + row(own(i)) * a.x_stride + k);
+             const Scalar8<Scalar> rv =
+                 sg_load8(sg, a.residual + row(own(i)) * a.res_stride + k);
+             ss[i] = router_sumsq8(xv, rv, ss[i]);
+@@ -419,7 +429,8 @@
+             router_atomic<unsigned int>(a.sync->reads_done[rg].n)
+                 .fetch_add(1u) == static_cast<unsigned int>(a.nwg_e - 1);
+       }
+-      Scalar8<Scalar>* s_nv = reinterpret_cast<Scalar8<Scalar>*>(s_nrm);  // [MR][nblk][16]
++      Scalar8<Scalar>* s_nv =
++          reinterpret_cast<Scalar8<Scalar>*>(s_nrm);  // [MR][nblk][16]
+       const bool keeper = kSplit || eg == 0;
+       float rs[kOwnRows];
+ #pragma unroll
+@@ -446,7 +457,8 @@
+ #pragma unroll
+           for (int i = 0; i < kOwnRows; ++i) {
+             if (own(i) < MR) {
+-              const Scalar8<Scalar> xv = sg_load8(sg, a.x + row(own(i)) * a.x_stride + k);
++              const Scalar8<Scalar> xv =
++                  sg_load8(sg, a.x + row(own(i)) * a.x_stride + k);
+               const Scalar8<Scalar> rv =
+                   sg_load8(sg, a.residual + row(own(i)) * a.res_stride + k);
+               nv[i] = router_norm8(xv, rv, gv, rs[i]);
+@@ -579,7 +591,8 @@
+           const int b = p % nblk, m = p / nblk, k = b * kBlk;
+           const Scalar8<Scalar> nv = reinterpret_cast<const Scalar8<Scalar>*>(
+               s_nrm)[(m * nblk + b) * kRouterSg + lane];
+-          const Scalar8<Scalar> xv = sg_load8(sg, a.x + (row0 + m) * a.x_stride + k);
++          const Scalar8<Scalar> xv =
++              sg_load8(sg, a.x + (row0 + m) * a.x_stride + k);
+           const Scalar8<Scalar> rv =
+               sg_load8(sg, a.residual + (row0 + m) * a.res_stride + k);
+           sg_store8(sg, a.normed_out + (row0 + m) * a.normed_stride + k, nv);
+@@ -672,7 +685,8 @@
+       }
+     }
+     // Lane 0 holds the largest logit.
+-    const float mx = router_key_logit<Scalar>(sycl::group_broadcast(sg, sel, 0));
++    const float mx =
++        router_key_logit<Scalar>(sycl::group_broadcast(sg, sel, 0));
+     const float p =
+         lane < a.top_k ? sycl::exp(router_key_logit<Scalar>(sel) - mx) : 0.f;
+     float denom;
+@@ -776,11 +790,14 @@
+     const torch::Tensor& topk_weights,
+     const torch::Tensor& topk_ids) {
+   TORCH_CHECK(
+-      x.dim() == 2 && (x.scalar_type() == at::kHalf || x.scalar_type() == at::kBFloat16) && x.stride(1) == 1,
++      x.dim() == 2 &&
++          (x.scalar_type() == at::kHalf || x.scalar_type() == at::kBFloat16) &&
++          x.stride(1) == 1,
+       name,
+       ": x must be fp16/bf16 [M, K] with unit inner stride");
+   TORCH_CHECK(
+-      router_weight.dim() == 2 && router_weight.scalar_type() == x.scalar_type() &&
++      router_weight.dim() == 2 &&
++          router_weight.scalar_type() == x.scalar_type() &&
+           router_weight.is_contiguous(),
+       name,
+       ": router_weight must be contiguous matching fp16/bf16 [E, K]");
+@@ -914,22 +931,23 @@
+           norm_weight.is_contiguous() &&
+           router_aligned16(norm_weight.data_ptr()),
+       name,
+-      ": norm_weight must be contiguous 16-byte aligned matching fp16/bf16 [K]");
++      ": norm_weight must be contiguous 16-byte aligned matching fp16/bf16 "
++      "[K]");
+   if (M == 0) return;
+   auto& queue = vllm::xpu::vllmGetQueue();
+   auto launch = [&](auto scalar) {
+     using Scalar = decltype(scalar);
+-  RouterArgs<Scalar> a = router_make_args<Scalar>(
+-      x, router_weight, logits, topk_weights, topk_ids, renormalize, queue);
+-  a.residual = reinterpret_cast<const Scalar*>(residual.data_ptr());
+-  a.res_stride = residual.stride(0);
+-  a.norm_w = reinterpret_cast<const Scalar*>(norm_weight.data_ptr());
+-  a.normed_out = reinterpret_cast<Scalar*>(normed_out.data_ptr());
+-  a.normed_stride = normed_out.stride(0);
+-  a.residual_out = reinterpret_cast<Scalar*>(residual_out.data_ptr());
+-  a.res_out_stride = residual_out.stride(0);
+-  a.eps = static_cast<float>(eps);
+-  router_dispatch<true>(queue, a);
++    RouterArgs<Scalar> a = router_make_args<Scalar>(
++        x, router_weight, logits, topk_weights, topk_ids, renormalize, queue);
++    a.residual = reinterpret_cast<const Scalar*>(residual.data_ptr());
++    a.res_stride = residual.stride(0);
++    a.norm_w = reinterpret_cast<const Scalar*>(norm_weight.data_ptr());
++    a.normed_out = reinterpret_cast<Scalar*>(normed_out.data_ptr());
++    a.normed_stride = normed_out.stride(0);
++    a.residual_out = reinterpret_cast<Scalar*>(residual_out.data_ptr());
++    a.res_out_stride = residual_out.stride(0);
++    a.eps = static_cast<float>(eps);
++    router_dispatch<true>(queue, a);
+   };
+   if (x.scalar_type() == at::kHalf)
+     launch(sycl::half{});
+--- a/csrc/xpu/gemv/xe_2/fp8_gemv.hpp
++++ b/csrc/xpu/gemv/xe_2/fp8_gemv.hpp
+@@ -1,11 +1,12 @@
+ // SPDX-License-Identifier: Apache-2.0
+ //
+-// Small-M (M = 1..8) FP8-E4M3 x FP16/BF16 GEMV for Xe2 (BMG), fp32 accumulation:
++// Small-M (M = 1..8) FP8-E4M3 x FP16/BF16 GEMV for Xe2 (BMG), fp32
++// accumulation:
+ //
+ //     out[m, n] = fp16( scale * sum_k a[m, k] * w[n, k] )
+ //
+-// w is row-major [N, K] FP8-E4M3 with ONE fp32 per-tensor scale, a is FP16 or BF16.
+-// The same core serves fused variants whose activation operand `a` is
++// w is row-major [N, K] FP8-E4M3 with ONE fp32 per-tensor scale, a is FP16 or
++// BF16. The same core serves fused variants whose activation operand `a` is
+ // produced by an in-kernel prologue (RMSNorm / gated RMSNorm) into SLM.
+ //
+ // Design (plain SYCL + the SYCL-TLA/CuTe Xe DPAS and 2D-block-IO atoms):
+@@ -287,7 +288,7 @@
+ struct Seg {
+   const uint8_t* w;    // [N, K] row-major E4M3
+   const float* scale;  // [1]
+-  Scalar* out;     // [M, N], row stride out_stride (elements)
++  Scalar* out;         // [M, N], row stride out_stride (elements)
+   int N;
+   int out_stride;
+   int wg_begin;  // first work-group of this segment
+@@ -314,8 +315,14 @@
+ // chunks into wpre (lets them overlap a prologue); see preload_w().
+ // CPS > 0: compile-time chunks per sub-group (K == CPS * KS * 64); the loop
+ // is fully unrolled so A producers may keep per-chunk data in registers.
+-template <int MP, int KS, int RG, class ALoad, int PRE = 1, int CPS = 0,
+-          typename Scalar = sycl::half>
++template <
++    int MP,
++    int KS,
++    int RG,
++    class ALoad,
++    int PRE = 1,
++    int CPS = 0,
++    typename Scalar = sycl::half>
+ static inline void gemv_body(
+     const sycl::nd_item<1>& item,
+     const Seg<Scalar>& seg,
+@@ -450,7 +457,11 @@
+ // gemv_body(..., wpre, true); returns false if the rows are out of range.
+ template <int PRE, int KS, typename Scalar>
+ static inline bool preload_w(
+-    const Seg<Scalar>& seg, int row0, int ks, int K, u32x8 (&wpre)[PRE][kChunkSteps]) {
++    const Seg<Scalar>& seg,
++    int row0,
++    int ks,
++    int K,
++    u32x8 (&wpre)[PRE][kChunkSteps]) {
+   if (row0 >= seg.N) return false;
+   const int nchunks = K / kChunkK;
+ #pragma unroll
+--- a/csrc/xpu/gemv/xe_2/fp8_gemv_xe2.cpp
++++ b/csrc/xpu/gemv/xe_2/fp8_gemv_xe2.cpp
+@@ -153,7 +153,10 @@
+ // Activation [.., K] fp16 viewable as [M, K] with a 2D-block-IO legal pitch.
+ static bool
+ act_ok(const torch::Tensor& x, int64_t& M, int64_t& K, int64_t& pitch) {
+-  if (!x.is_xpu() || !(x.scalar_type() == at::kHalf || x.scalar_type() == at::kBFloat16) || x.dim() < 2) return false;
++  if (!x.is_xpu() ||
++      !(x.scalar_type() == at::kHalf || x.scalar_type() == at::kBFloat16) ||
++      x.dim() < 2)
++    return false;
+   K = x.size(-1);
+   if (K <= 0 || x.stride(-1) != 1) return false;
+   M = x.numel() / K;
+@@ -218,7 +221,9 @@
+ static void
+ check_common(const torch::Tensor& x, int64_t& M, int64_t& K, int64_t& pitch) {
+   TORCH_CHECK(x.is_xpu(), "fp8_gemv: x must be an XPU tensor");
+-  TORCH_CHECK((x.scalar_type() == at::kHalf || x.scalar_type() == at::kBFloat16), "fp8_gemv: x must be float16 or bfloat16");
++  TORCH_CHECK(
++      (x.scalar_type() == at::kHalf || x.scalar_type() == at::kBFloat16),
++      "fp8_gemv: x must be float16 or bfloat16");
+   TORCH_CHECK(x.dim() >= 2, "fp8_gemv: x must be at least 2-D");
+   TORCH_CHECK(x.stride(-1) == 1, "fp8_gemv: x last dim must be contiguous");
+   TORCH_CHECK(
+@@ -365,7 +370,8 @@
+     const torch::Tensor& scale2) {
+   if (x.scalar_type() == at::kHalf)
+     return fp8_gemv2_w8a16_impl<sycl::half>(x, w1, scale1, w2, scale2);
+-  return fp8_gemv2_w8a16_impl<sycl::ext::oneapi::bfloat16>(x, w1, scale1, w2, scale2);
++  return fp8_gemv2_w8a16_impl<sycl::ext::oneapi::bfloat16>(
++      x, w1, scale1, w2, scale2);
+ }
+ 
+ // Bridge entry for the existing fp8_gemm_w8a16(A, B=[K,N] NT view, ...) op
+--- a/csrc/xpu/gemv/xe_2/norm_fp8_gemv_xe2.cpp
++++ b/csrc/xpu/gemv/xe_2/norm_fp8_gemv_xe2.cpp
+@@ -118,8 +118,10 @@
+         const uint32_t xv = *reinterpret_cast<const uint32_t*>(xh + d);
+         const uint32_t zv = *reinterpret_cast<const uint32_t*>(zh + d);
+         const uint32_t wv = *reinterpret_cast<const uint32_t*>(wn + d);
+-        const float y0 = lo_f<Scalar>(xv) * rstd * lo_f<Scalar>(wv) * silu(lo_f<Scalar>(zv));
+-        const float y1 = hi_f<Scalar>(xv) * rstd * hi_f<Scalar>(wv) * silu(hi_f<Scalar>(zv));
++        const float y0 =
++            lo_f<Scalar>(xv) * rstd * lo_f<Scalar>(wv) * silu(lo_f<Scalar>(zv));
++        const float y1 =
++            hi_f<Scalar>(xv) * rstd * hi_f<Scalar>(wv) * silu(hi_f<Scalar>(zv));
+         vset<MP>(A.e[t], m, short(scalar_bits<Scalar>(y0)));
+         vset<MP>(A.o[t], m, short(scalar_bits<Scalar>(y1)));
+       }
+@@ -268,7 +270,8 @@
+               const float t1 = hi_f<Scalar>(xv[i][q]) + hi_f<Scalar>(rv[i][q]);
+               ss = sycl::fma(t0, t0, ss);
+               ss = sycl::fma(t1, t1, ss);
+-              o[q] = uint32_t(scalar_bits<Scalar>(t0)) | (uint32_t(scalar_bits<Scalar>(t1)) << 16);
++              o[q] = uint32_t(scalar_bits<Scalar>(t0)) |
++                     (uint32_t(scalar_bits<Scalar>(t1)) << 16);
+             }
+             const int v = v0 + i * kSg + lane;
+             if (write_res && v < v_end) op[v] = o;
+@@ -305,8 +308,8 @@
+ // otherwise they queue behind DRAM latency.
+ template <int CPS, typename Scalar>
+ static inline void load_chunks(
+-    const Scalar* base,  // first chunk of this sub-group
+-    int64_t pitch_elems,     // element stride between its chunks
++    const Scalar* base,   // first chunk of this sub-group
++    int64_t pitch_elems,  // element stride between its chunks
+     uint32_t (&d)[CPS][kChunkSteps]) {
+ #ifdef __SYCL_DEVICE_ONLY__
+   uint32_t v[kChunkSteps][CPS];
+@@ -328,9 +331,7 @@
+ 
+ template <int CPS, typename Scalar>
+ static inline void store_chunks(
+-    Scalar* base,
+-    int64_t pitch_elems,
+-    const uint32_t (&d)[CPS][kChunkSteps]) {
++    Scalar* base, int64_t pitch_elems, const uint32_t (&d)[CPS][kChunkSteps]) {
+ #ifdef __SYCL_DEVICE_ONLY__
+   uint32_t v[kChunkSteps][CPS];
+   #pragma unroll
+@@ -370,8 +371,10 @@
+ #pragma unroll
+     for (int t = 0; t < kChunkSteps; ++t) {
+       const uint32_t xv = d->xd[it][t], rv = d->gd[it][t], wv = d->wd[it][t];
+-      const float y0 = (lo_f<Scalar>(xv) + lo_f<Scalar>(rv)) * d->rstd[0] * (lo_f<Scalar>(wv) + 1.f);
+-      const float y1 = (hi_f<Scalar>(xv) + hi_f<Scalar>(rv)) * d->rstd[0] * (hi_f<Scalar>(wv) + 1.f);
++      const float y0 = (lo_f<Scalar>(xv) + lo_f<Scalar>(rv)) * d->rstd[0] *
++                       (lo_f<Scalar>(wv) + 1.f);
++      const float y1 = (hi_f<Scalar>(xv) + hi_f<Scalar>(rv)) * d->rstd[0] *
++                       (hi_f<Scalar>(wv) + 1.f);
+       A.e[t] = short(scalar_bits<Scalar>(y0));
+       A.o[t] = short(scalar_bits<Scalar>(y1));
+     }
+@@ -441,7 +444,8 @@
+         const float t1 = hi_f<Scalar>(d.xd[i][t]) + hi_f<Scalar>(d.gd[i][t]);
+         ss = sycl::fma(t0, t0, ss);
+         ss = sycl::fma(t1, t1, ss);
+-        td[i][t] = uint32_t(scalar_bits<Scalar>(t0)) | (uint32_t(scalar_bits<Scalar>(t1)) << 16);
++        td[i][t] = uint32_t(scalar_bits<Scalar>(t0)) |
++                   (uint32_t(scalar_bits<Scalar>(t1)) << 16);
+       }
+     if (g == 0) store_chunks<CPS>(r_out + e0, kPitch, td);  // residual_out
+     ss = sycl::reduce_over_group(sg, ss, sycl::plus<float>());
+@@ -523,8 +527,10 @@
+           ss = sycl::fma(a, a, ss);
+           ss = sycl::fma(b, b, ss);
+         }
+-        gf.g[i][t][0] = lo_f<Scalar>(d.wd[0][t]) * silu_fast(lo_f<Scalar>(d.gd[i][t]));
+-        gf.g[i][t][1] = hi_f<Scalar>(d.wd[0][t]) * silu_fast(hi_f<Scalar>(d.gd[i][t]));
++        gf.g[i][t][0] =
++            lo_f<Scalar>(d.wd[0][t]) * silu_fast(lo_f<Scalar>(d.gd[i][t]));
++        gf.g[i][t][1] =
++            hi_f<Scalar>(d.wd[0][t]) * silu_fast(hi_f<Scalar>(d.gd[i][t]));
+       }
+       ss = sycl::reduce_over_group(sg, ss, sycl::plus<float>());
+       d.rstd[i] = sycl::rsqrt(ss * (1.f / float(D)) + eps);
+@@ -586,7 +592,9 @@
+     int64_t D,
+     int64_t& s_m,
+     int64_t& s_h) {
+-  if (!t.is_xpu() || (t.scalar_type() != at::kHalf && t.scalar_type() != at::kBFloat16)) return false;
++  if (!t.is_xpu() ||
++      (t.scalar_type() != at::kHalf && t.scalar_type() != at::kBFloat16))
++    return false;
+   if (t.dim() == 3) {
+     if (t.size(0) != M || t.size(1) != H || t.size(2) != D || t.stride(2) != 1)
+       return false;
+@@ -632,7 +640,8 @@
+   if (x.dim() == 2 && x.size(1) % D != 0) return false;
+   if (M < 1 || M > kMaxM || H < 1) return false;
+   return heads_ok(x, M, H, D, xs[0], xs[1]) &&
+-         heads_ok(z, M, H, D, zs[0], zs[1]) && z.scalar_type() == x.scalar_type() && z.device() == x.device() &&
++         heads_ok(z, M, H, D, zs[0], zs[1]) &&
++         z.scalar_type() == x.scalar_type() && z.device() == x.device() &&
+          wn.device() == x.device() && wn.scalar_type() == x.scalar_type() &&
+          wn.stride(0) == 1 && aligned(wn.data_ptr(), 4);
+ }
+@@ -662,7 +671,8 @@
+   int64_t M, H, D, xs[2], zs[2];
+   TORCH_CHECK(
+       gated_shapes(x, z, norm_weight, M, H, D, xs, zs),
+-      "gated_rmsnorm_fp8_gemv: x, z must be matching fp16/bf16 [M<=8, H, D] (or [M, H*D]) "
++      "gated_rmsnorm_fp8_gemv: x, z must be matching fp16/bf16 [M<=8, H, D] "
++      "(or [M, H*D]) "
+       "with contiguous last dim, strides multiple of 8 and 16 B alignment; "
+       "norm_weight "
+       "fp16/bf16 [D] contiguous with D % 64 == 0 (got x ",
+@@ -763,8 +773,10 @@
+     const torch::Tensor& w,
+     const torch::Tensor& scale) {
+   if (x.scalar_type() == at::kHalf)
+-    return gated_rmsnorm_fp8_gemv_impl<sycl::half>(x, z, norm_weight, eps, w, scale);
+-  return gated_rmsnorm_fp8_gemv_impl<sycl::ext::oneapi::bfloat16>(x, z, norm_weight, eps, w, scale);
++    return gated_rmsnorm_fp8_gemv_impl<sycl::half>(
++        x, z, norm_weight, eps, w, scale);
++  return gated_rmsnorm_fp8_gemv_impl<sycl::ext::oneapi::bfloat16>(
++      x, z, norm_weight, eps, w, scale);
+ }
+ 
+ // ---- residual add + Gemma RMSNorm ------------------------------------------
+@@ -779,7 +791,8 @@
+   M = x.size(0);
+   K = x.size(1);
+   return M >= 1 && M <= kMaxM && K % kChunkK == 0 &&
+-         (x.scalar_type() == at::kHalf || x.scalar_type() == at::kBFloat16) && r.scalar_type() == x.scalar_type() &&
++         (x.scalar_type() == at::kHalf || x.scalar_type() == at::kBFloat16) &&
++         r.scalar_type() == x.scalar_type() &&
+          wn.scalar_type() == x.scalar_type() && r.sizes() == x.sizes() &&
+          wn.size(0) == K && x.stride(1) == 1 && r.stride(1) == 1 &&
+          wn.stride(0) == 1 && x.stride(0) % 8 == 0 && r.stride(0) % 8 == 0 &&
+@@ -875,7 +888,8 @@
+     int64_t& K) {
+   TORCH_CHECK(
+       resadd_shapes(x, r, wn, M, K),
+-      "resadd_rmsnorm_fp8_gemv: x, residual must be matching fp16/bf16 [M<=8, K] (same "
++      "resadd_rmsnorm_fp8_gemv: x, residual must be matching fp16/bf16 [M<=8, "
++      "K] (same "
+       "shape, contiguous last dim, row stride multiple of 8, 16 B aligned), "
+       "norm_weight "
+       "fp16/bf16 [K] contiguous, K % 64 == 0 (got x ",
+@@ -922,8 +936,10 @@
+     const torch::Tensor& w,
+     const torch::Tensor& scale) {
+   if (x.scalar_type() == at::kHalf)
+-    return resadd_rmsnorm_fp8_gemv_impl<sycl::half>(x, residual, norm_weight, eps, w, scale);
+-  return resadd_rmsnorm_fp8_gemv_impl<sycl::ext::oneapi::bfloat16>(x, residual, norm_weight, eps, w, scale);
++    return resadd_rmsnorm_fp8_gemv_impl<sycl::half>(
++        x, residual, norm_weight, eps, w, scale);
++  return resadd_rmsnorm_fp8_gemv_impl<sycl::ext::oneapi::bfloat16>(
++      x, residual, norm_weight, eps, w, scale);
+ }
+ 
+ template <typename Scalar>
+@@ -976,8 +992,10 @@
+     const torch::Tensor& w2,
+     const torch::Tensor& scale2) {
+   if (x.scalar_type() == at::kHalf)
+-    return resadd_rmsnorm_fp8_gemv2_impl<sycl::half>(x, residual, norm_weight, eps, w1, scale1, w2, scale2);
+-  return resadd_rmsnorm_fp8_gemv2_impl<sycl::ext::oneapi::bfloat16>(x, residual, norm_weight, eps, w1, scale1, w2, scale2);
++    return resadd_rmsnorm_fp8_gemv2_impl<sycl::half>(
++        x, residual, norm_weight, eps, w1, scale1, w2, scale2);
++  return resadd_rmsnorm_fp8_gemv2_impl<sycl::ext::oneapi::bfloat16>(
++      x, residual, norm_weight, eps, w1, scale1, w2, scale2);
+ }
+ 
+ // ---------------------------------------------------------------------------
+@@ -1012,8 +1030,7 @@
+     ss = sycl::reduce_over_group(it.get_group(), ss, sycl::plus<float>());
+     const float rstd = sycl::rsqrt(ss / float(D) + eps);
+     for (int d = lid; d < D; d += kNormWg)
+-      yh[d] =
+-          Scalar(float(xh[d]) * rstd * float(wn[d]) * silu(float(zh[d])));
++      yh[d] = Scalar(float(xh[d]) * rstd * float(wn[d]) * silu(float(zh[d])));
+   }
+ };
+ 
+@@ -1055,7 +1072,9 @@
+     int64_t D,
+     int64_t& s_m,
+     int64_t& s_h) {
+-  if (!t.is_xpu() || (t.scalar_type() != at::kHalf && t.scalar_type() != at::kBFloat16) || (t.device() != ref.device() || t.scalar_type() != ref.scalar_type()))
++  if (!t.is_xpu() ||
++      (t.scalar_type() != at::kHalf && t.scalar_type() != at::kBFloat16) ||
++      (t.device() != ref.device() || t.scalar_type() != ref.scalar_type()))
+     return false;
+   if (t.dim() == 3 && t.size(1) == H && t.size(2) == D && t.stride(2) == 1) {
+     s_m = t.stride(0);
+@@ -1077,9 +1096,9 @@
+     const torch::Tensor& z,
+     const torch::Tensor& wn,
+     double eps) {
+-  if (wn.dim() != 1 || wn.scalar_type() != x.scalar_type() || wn.stride(0) != 1 ||
+-      wn.device() != x.device() || (x.dim() != 2 && x.dim() != 3) ||
+-      z.sizes() != x.sizes())
++  if (wn.dim() != 1 || wn.scalar_type() != x.scalar_type() ||
++      wn.stride(0) != 1 || wn.device() != x.device() ||
++      (x.dim() != 2 && x.dim() != 3) || z.sizes() != x.sizes())
+     return std::nullopt;
+   const int64_t D = wn.size(0), M = x.size(0);
+   if (D < 1 || (x.dim() == 2 && x.size(1) % D != 0)) return std::nullopt;
+@@ -1128,7 +1147,8 @@
+     const torch::Tensor& wn,
+     double eps) {
+   if (!x.is_xpu() || x.dim() != 2 || r.sizes() != x.sizes() ||
+-      (x.scalar_type() != at::kHalf && x.scalar_type() != at::kBFloat16) || r.scalar_type() != x.scalar_type() ||
++      (x.scalar_type() != at::kHalf && x.scalar_type() != at::kBFloat16) ||
++      r.scalar_type() != x.scalar_type() ||
+       wn.scalar_type() != x.scalar_type() || wn.dim() != 1 ||
+       wn.size(0) != x.size(1) || x.stride(1) != 1 || r.stride(1) != 1 ||
+       wn.stride(0) != 1 || r.device() != x.device() ||
+--- a/csrc/xpu/grouped_gemm/xe_2/moe_shared_fused_decode_xe2.cpp
++++ b/csrc/xpu/grouped_gemm/xe_2/moe_shared_fused_decode_xe2.cpp
+@@ -351,13 +351,7 @@
+           auto tile_coord = make_coord(0, n_tile, _, 0);
+ 
+           MoE::xe_gemm<void, void, void>(
+-              A_t,
+-              B_t,
+-              sc + e,
+-              (const ElementA*)nullptr,
+-              D_t,
+-              tile_coord,
+-              mma);
++              A_t, B_t, sc + e, (const ElementA*)nullptr, D_t, tile_coord, mma);
+         });
+   });
+ }
+@@ -543,7 +537,8 @@
+       "moe_shared_fused_decode only supports fp16/bf16 activations + fp8-e4m3 "
+       "per-tensor weights: ";
+   TORCH_CHECK(
+-      (x.scalar_type() == at::kHalf || x.scalar_type() == at::kBFloat16) && output.scalar_type() == x.scalar_type(),
++      (x.scalar_type() == at::kHalf || x.scalar_type() == at::kBFloat16) &&
++          output.scalar_type() == x.scalar_type(),
+       kRecipe,
+       "x and output must have the same float16 or bfloat16 dtype");
+   TORCH_CHECK(
+@@ -701,7 +696,10 @@
+ 
+   // 3: gemm1 (routed tiles + shared panel in one grid)
+   if (tile_m == kMoeSharedFusedTileM8) {
+-    launch_sp_gemm_merged<MoE::w8a16_policy_m_8, cutlass::float_e4m3_t, ElementA>(
++    launch_sp_gemm_merged<
++        MoE::w8a16_policy_m_8,
++        cutlass::float_e4m3_t,
++        ElementA>(
+         q,
+         a_perm,
+         w13.data_ptr(),
+@@ -721,7 +719,10 @@
+         K1,
+         has_shared);
+   } else {
+-    launch_sp_gemm_merged<MoE::w8a16_policy_m_16, cutlass::float_e4m3_t, ElementA>(
++    launch_sp_gemm_merged<
++        MoE::w8a16_policy_m_16,
++        cutlass::float_e4m3_t,
++        ElementA>(
+         q,
+         a_perm,
+         w13.data_ptr(),
+@@ -758,7 +759,10 @@
+ 
+   // 5: gemm2 (routed tiles + shared panel in one grid)
+   if (tile_m == kMoeSharedFusedTileM8) {
+-    launch_sp_gemm_merged<MoE::w8a16_policy_m_8, cutlass::float_e4m3_t, ElementA>(
++    launch_sp_gemm_merged<
++        MoE::w8a16_policy_m_8,
++        cutlass::float_e4m3_t,
++        ElementA>(
+         q,
+         act,
+         w2.data_ptr(),
+@@ -778,7 +782,10 @@
+         K2,
+         has_shared);
+   } else {
+-    launch_sp_gemm_merged<MoE::w8a16_policy_m_16, cutlass::float_e4m3_t, ElementA>(
++    launch_sp_gemm_merged<
++        MoE::w8a16_policy_m_16,
++        cutlass::float_e4m3_t,
++        ElementA>(
+         q,
+         act,
+         w2.data_ptr(),
+@@ -814,7 +821,6 @@
+       has_shared);
+ }
+ 
+-
+ void moe_shared_fused_decode_xe2(
+     torch::Tensor& output,
+     const torch::Tensor& x,
+@@ -832,6 +838,36 @@
+     torch::Tensor& ws,
+     int64_t tile_m) {
+   if (x.scalar_type() == at::kBFloat16)
+-    return moe_shared_fused_decode_xe2_impl<cutlass::bfloat16_t>(output, x, topk_ids, topk_weights, w13, w13_scale, w2, w2_scale, shared_w13_t, shared_w13_scale_t, shared_w2_t, shared_w2_scale_t, shared_gate_t, ws, tile_m);
+-  return moe_shared_fused_decode_xe2_impl<cutlass::half_t>(output, x, topk_ids, topk_weights, w13, w13_scale, w2, w2_scale, shared_w13_t, shared_w13_scale_t, shared_w2_t, shared_w2_scale_t, shared_gate_t, ws, tile_m);
++    return moe_shared_fused_decode_xe2_impl<cutlass::bfloat16_t>(
++        output,
++        x,
++        topk_ids,
++        topk_weights,
++        w13,
++        w13_scale,
++        w2,
++        w2_scale,
++        shared_w13_t,
++        shared_w13_scale_t,
++        shared_w2_t,
++        shared_w2_scale_t,
++        shared_gate_t,
++        ws,
++        tile_m);
++  return moe_shared_fused_decode_xe2_impl<cutlass::half_t>(
++      output,
++      x,
++      topk_ids,
++      topk_weights,
++      w13,
++      w13_scale,
++      w2,
++      w2_scale,
++      shared_w13_t,
++      shared_w13_scale_t,
++      shared_w2_t,
++      shared_w2_scale_t,
++      shared_gate_t,
++      ws,
++      tile_m);
+ }
+--- a/vllm_xpu_kernels/moe_shared_fused_interface.py
++++ b/vllm_xpu_kernels/moe_shared_fused_interface.py
+@@ -43,11 +43,9 @@
+ def router_norm_supports(hidden_size: int) -> bool:
+     """Whether the residual-add + RMSNorm router variant supports hidden_size
+     (in addition to router_supports())."""
+-    return (
+-        router_is_available()
+-        and hasattr(torch.ops._moe_C, "router_resadd_norm_gemv_topk_softmax")
+-        and hidden_size <= _ROUTER_NORM_MAX_HIDDEN
+-    )
++    return (router_is_available() and hasattr(
++        torch.ops._moe_C, "router_resadd_norm_gemv_topk_softmax")
++            and hidden_size <= _ROUTER_NORM_MAX_HIDDEN)
+ 
+ 
+ def router_supports(
+@@ -58,13 +56,11 @@
+ ) -> bool:
+     """Whether the fused FP16/BF16 router GEMV + softmax top-k supports
+     this configuration (for up to 8 tokens per call)."""
+-    return (
+-        router_is_available()
+-        and router_weight_dtype in (torch.float16, torch.bfloat16)
+-        and num_experts <= _ROUTER_MAX_EXPERTS
+-        and 1 <= top_k <= min(_ROUTER_MAX_TOP_K, num_experts)
+-        and hidden_size % 128 == 0
+-    )
++    return (router_is_available()
++            and router_weight_dtype in (torch.float16, torch.bfloat16)
++            and num_experts <= _ROUTER_MAX_EXPERTS
++            and 1 <= top_k <= min(_ROUTER_MAX_TOP_K, num_experts)
++            and hidden_size % 128 == 0)
+ 
+ 
+ def supports(
+@@ -81,14 +77,11 @@
+     num_tokens * top_k <= 512, hidden_size % 16 == 0 and
+     intermediate_size % 8 == 0.
+     """
+-    return (
+-        is_available()
+-        and hidden_states_dtype in (torch.float16, torch.bfloat16)
+-        and weight_dtype == torch.float8_e4m3fn
+-        and num_tokens * top_k <= _MAX_ROUTED_ROWS
+-        and hidden_size % 16 == 0
+-        and intermediate_size % 8 == 0
+-    )
++    return (is_available()
++            and hidden_states_dtype in (torch.float16, torch.bfloat16)
++            and weight_dtype == torch.float8_e4m3fn
++            and num_tokens * top_k <= _MAX_ROUTED_ROWS
++            and hidden_size % 16 == 0 and intermediate_size % 8 == 0)
+ 
+ 
+ def moe_shared_fused_workspace_bytes(
+@@ -109,13 +102,9 @@
+     o_wperm = align(4 * (3 * umt + 1 + rows))
+     o_gate = align(o_wperm + 4 * rows)
+     o_ap = align(o_gate + 4 * num_tokens)
+-    return o_ap + 2 * (
+-        rows * hidden_size
+-        + (rows + num_tokens) * w13_n
+-        + (rows + num_tokens) * w2_k
+-        + rows * hidden_size
+-        + num_tokens * hidden_size
+-    )
++    return o_ap + 2 * (rows * hidden_size + (rows + num_tokens) * w13_n +
++                       (rows + num_tokens) * w2_k + rows * hidden_size +
++                       num_tokens * hidden_size)
+ 
+ 
+ class XpuMoESharedFusedDecode:
+@@ -165,9 +154,8 @@
+         self.num_experts = w13.shape[0]
+         self.tile_m = tile_m
+         self._ws: dict[int, torch.Tensor] = {}
+-        self.router_weight = (
+-            router_weight.contiguous() if router_weight is not None else None
+-        )
++        self.router_weight = (router_weight.contiguous()
++                              if router_weight is not None else None)
+         self.renormalize = renormalize
+         self._routing: dict[int, tuple[torch.Tensor, ...]] = {}
+ 
+@@ -215,8 +203,8 @@
+         return output
+ 
+     def route(
+-        self, hidden_states: torch.Tensor
+-    ) -> tuple[torch.Tensor, torch.Tensor]:
++            self,
++            hidden_states: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+         """Softmax top-k routing of hidden_states with router_weight.
+ 
+         Returns (topk_weights fp32, topk_ids int32), [M, top_k] each; the
+@@ -224,8 +212,7 @@
+         """
+         assert self.router_weight is not None, "no router_weight given"
+         logits, topk_weights, topk_ids = self._routing_buffers(
+-            hidden_states.shape[0], hidden_states.device
+-        )
++            hidden_states.shape[0], hidden_states.device)
+         torch.ops._moe_C.router_gemv_topk_softmax(
+             hidden_states,
+             self.router_weight,
+@@ -236,9 +223,8 @@
+         )
+         return topk_weights, topk_ids
+ 
+-    def _routing_buffers(
+-        self, m: int, device: torch.device
+-    ) -> tuple[torch.Tensor, ...]:
++    def _routing_buffers(self, m: int,
++                         device: torch.device) -> tuple[torch.Tensor, ...]:
+         bufs = self._routing.get(m)
+         if bufs is None:
+             bufs = (
+@@ -253,8 +239,8 @@
+         return bufs
+ 
+     def forward_routed(
+-        self, output: torch.Tensor, hidden_states: torch.Tensor
+-    ) -> tuple[torch.Tensor, torch.Tensor]:
++            self, output: torch.Tensor,
++            hidden_states: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+         """route() + forward(); returns (output, topk_ids)."""
+         topk_weights, topk_ids = self.route(hidden_states)
+         out = self.forward(output, hidden_states, topk_weights, topk_ids)
+--- a/tests/test_fp8_gemv_dispatch.py
++++ b/tests/test_fp8_gemv_dispatch.py
+@@ -39,15 +39,18 @@
+     base = torch.randn(1, 4096, device=DEVICE, dtype=dtype)
+     x = base[:, 2048:]
+     out = torch.ops._xpu_C.fp8_gemm_w8a16(x, w.t(), scale, None)
+-    torch.testing.assert_close(out, _reference(x.contiguous(), w, scale),
+-                               atol=2e-3, rtol=2e-2)
++    torch.testing.assert_close(out,
++                               _reference(x.contiguous(), w, scale),
++                               atol=2e-3,
++                               rtol=2e-2)
+ 
+ 
+ @pytest.mark.parametrize("m", [1, 4])
+ @pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16])
+ def test_fp8_gemm_w8a16_pair(m, dtype):
+     torch.manual_seed(0)
+-    w1 = (torch.randn(6144, 2048, device=DEVICE) * 0.05).to(torch.float8_e4m3fn)
++    w1 = (torch.randn(6144, 2048, device=DEVICE) * 0.05).to(
++        torch.float8_e4m3fn)
+     w2 = (torch.randn(32, 2048, device=DEVICE) * 0.05).to(torch.float8_e4m3fn)
+     s1 = torch.tensor([0.02], device=DEVICE)
+     s2 = torch.tensor([0.03], device=DEVICE)
+--- a/tests/test_norm_fp8_gemv.py
++++ b/tests/test_norm_fp8_gemv.py
+@@ -31,8 +31,10 @@
+     xf = x.float()
+     y = (xf * torch.rsqrt(xf.pow(2).mean(-1, keepdim=True) + EPS) *
+          nw.float() * torch.nn.functional.silu(z.float())).to(dtype)
+-    torch.testing.assert_close(out, _lin(y.reshape(m, -1), w, s),
+-                               atol=3e-3, rtol=2e-2)
++    torch.testing.assert_close(out,
++                               _lin(y.reshape(m, -1), w, s),
++                               atol=3e-3,
++                               rtol=2e-2)
+ 
+ 
+ def _resadd_ref(x, r, nw):
+@@ -90,8 +92,10 @@
+     xf = x.float().reshape(m, h, d)
+     y = (xf * torch.rsqrt(xf.pow(2).mean(-1, keepdim=True) + EPS) *
+          nw.float() * torch.nn.functional.silu(z.float().reshape(m, h, d)))
+-    torch.testing.assert_close(out, _lin(y.to(dtype).reshape(m, -1), w, s),
+-                               atol=3e-3, rtol=2e-2)
++    torch.testing.assert_close(out,
++                               _lin(y.to(dtype).reshape(m, -1), w, s),
++                               atol=3e-3,
++                               rtol=2e-2)
+ 
+     xb = torch.randn(m, 4096, device=DEVICE, dtype=dtype)
+     rb = torch.randn(m, 6144, device=DEVICE, dtype=dtype)
+--- a/tests/fused_moe/test_router_gemv_topk_softmax.py
++++ b/tests/fused_moe/test_router_gemv_topk_softmax.py
+@@ -100,10 +100,10 @@
+     normed_out = x_in if inplace == "both" else torch.empty_like(x)
+     residual_out = res_in if inplace != "none" else torch.empty_like(x)
+     logits, topk_weights, topk_ids = _outputs(m, e, top_k)
+-    OPS.router_resadd_norm_gemv_topk_softmax(x_in, res_in, norm_weight, EPS,
+-                                             w, logits, topk_weights,
+-                                             topk_ids, normed_out,
+-                                             residual_out, renormalize)
++    OPS.router_resadd_norm_gemv_topk_softmax(x_in, res_in, norm_weight, EPS, w,
++                                             logits, topk_weights, topk_ids,
++                                             normed_out, residual_out,
++                                             renormalize)
+     torch.testing.assert_close(residual_out, ref_residual, atol=0, rtol=0)
+     # (rsqrt may differ in the last bit: allow ~1 fp16 ulp)
+     torch.testing.assert_close(normed_out, ref_normed, atol=1e-3, rtol=1e-3)
+--- a/tests/fused_moe/test_moe_shared_fused_decode.py
++++ b/tests/fused_moe/test_moe_shared_fused_decode.py
+@@ -11,8 +11,8 @@
+ NUM_EXPERTS = 256
+ TOP_K = 8
+ 
+-pytestmark = pytest.mark.skipif(
+-    not is_available(), reason="moe_shared_fused_decode op not built")
++pytestmark = pytest.mark.skipif(not is_available(),
++                                reason="moe_shared_fused_decode op not built")
+ 
+ 
+ def quant_fp8_per_tensor(w: torch.Tensor):
+@@ -33,8 +33,7 @@
+     sw13f = torch.randn(HIDDEN, 2 * inter, device=DEVICE) / 32
+     sw2f = torch.randn(inter, HIDDEN, device=DEVICE) / 32
+     gate = (torch.randn(1, HIDDEN, device=DEVICE) / 32).to(dtype)
+-    return [quant_fp8_per_tensor(w)
+-            for w in (w13f, w2f, sw13f, sw2f)] + [gate]
++    return [quant_fp8_per_tensor(w) for w in (w13f, w2f, sw13f, sw2f)] + [gate]
+ 
+ 
+ def route(m: int):
+@@ -69,8 +68,17 @@
+ 
+ def make_op(weights, tile_m=0):
+     (w13, s13, _), (w2, s2, _), (sw13, ss13, _), (sw2, ss2, _), gate = weights
+-    return XpuMoESharedFusedDecode(w13, s13, w2, s2, sw13, ss13, sw2, ss2,
+-                                   gate, TOP_K, tile_m=tile_m)
++    return XpuMoESharedFusedDecode(w13,
++                                   s13,
++                                   w2,
++                                   s2,
++                                   sw13,
++                                   ss13,
++                                   sw2,
++                                   ss2,
++                                   gate,
++                                   TOP_K,
++                                   tile_m=tile_m)
+ 
+ 
+ @pytest.mark.parametrize("m", [1, 2, 3, 4, 8])

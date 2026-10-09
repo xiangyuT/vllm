@@ -1,0 +1,10 @@
+{
+  "profile": "baseline_NONE",
+  "measured_samples": 3,
+  "prompt_sha256": "122dab552738423ce9ceef0667c4c0820aaf4ec8322f26c18227b9ebe9e04073",
+  "medians": {
+    "ttft_ms": 163.18186093121767,
+    "tpot_ms": 18.754380286726004,
+    "total_ms": 4945.548834046349
+  }
+}

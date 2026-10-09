@@ -1,0 +1,280 @@
+diff --git a/tests/compile/passes/test_xpu_fusion.py b/tests/compile/passes/test_xpu_fusion.py
+index 00975758..756c4fc1 100644
+--- a/tests/compile/passes/test_xpu_fusion.py
++++ b/tests/compile/passes/test_xpu_fusion.py
+@@ -151,6 +151,23 @@ def _fused_target():
+         direct_register_custom_op(
+             op_name="xpu_moe_shared_fused", op_func=_impl, fake_impl=_impl
+         )
++    if not hasattr(torch.ops.vllm, "xpu_moe_shared_fused_resadd_norm"):
++        from vllm.utils.torch_utils import LayerNameType, direct_register_custom_op
++
++        def _norm_impl(
++            x: torch.Tensor,
++            residual: torch.Tensor,
++            norm_weight: torch.Tensor,
++            eps: float,
++            layer_name: LayerNameType,
++        ) -> tuple[torch.Tensor, torch.Tensor]:
++            return torch.empty_like(x), torch.empty_like(residual)
++
++        direct_register_custom_op(
++            op_name="xpu_moe_shared_fused_resadd_norm",
++            op_func=_norm_impl,
++            fake_impl=_norm_impl,
++        )
+     return torch.ops.vllm.xpu_moe_shared_fused.default
+ 
+ 
+@@ -176,10 +193,10 @@ def _moe_layer(g, x, layer, *, router_in=None, input_ids=None):
+     return moe, shared, routed, add, out
+ 
+ 
+-def _moe_graph(num_layers=2, **kw):
++def _moe_graph(num_layers=2, dtype=torch.float16, **kw):
+     g = fx.Graph()
+     x = g.placeholder("x")
+-    x.meta["val"] = torch.empty(4, HIDDEN, dtype=torch.float16, device="meta")
++    x.meta["val"] = torch.empty(4, HIDDEN, dtype=dtype, device="meta")
+     extra = []
+     for i in range(num_layers):
+         layer = g.placeholder(f"layer_{i}")
+@@ -207,8 +224,9 @@ def fusion_pass(monkeypatch):
+     return p
+ 
+ 
+-def test_rewrites_every_layer(fusion_pass):
+-    g, layers = _moe_graph(num_layers=2)
++@pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16])
++def test_rewrites_every_layer(fusion_pass, dtype):
++    g, layers = _moe_graph(num_layers=2, dtype=dtype)
+     fusion_pass(g)
+     assert _count(g, MOE) == 0
+     assert _count(g, FUSED) == 2
+@@ -217,14 +235,14 @@ def test_rewrites_every_layer(fusion_pass):
+         assert src.target is FUSED
+ 
+ 
+-def _norm_moe_graph(extra_normed_user=False):
++def _norm_moe_graph(extra_normed_user=False, dtype=torch.float16):
+     """Graph: res' , h = fused_add_rms_norm(x, res, w.float() + 1, eps); moe(h);
+     returns the graph and the node using res'."""
+     g = fx.Graph()
+-    val = torch.empty(4, HIDDEN, dtype=torch.float16, device="meta")
++    val = torch.empty(4, HIDDEN, dtype=dtype, device="meta")
+     x, res, w, layer = (g.placeholder(n) for n in ("x", "res", "w", "layer"))
+     x.meta["val"], res.meta["val"] = val, val
+-    w.meta["val"] = torch.empty(HIDDEN, dtype=torch.float16, device="meta")
++    w.meta["val"] = torch.empty(HIDDEN, dtype=dtype, device="meta")
+     wf = g.call_function(
+         torch.ops.prims.convert_element_type.default, (w, torch.float32)
+     )
+@@ -245,11 +263,12 @@ def _norm_moe_graph(extra_normed_user=False):
+     return g, res_user
+ 
+ 
+-def test_input_norm_fused(fusion_pass):
++@pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16])
++def test_input_norm_fused(fusion_pass, dtype):
+     if not hasattr(torch.ops.vllm, "xpu_moe_shared_fused_resadd_norm"):
+         pytest.skip("needs vllm._xpu_ops")
+     fusion_pass.fuse_input_norm = True
+-    g, res_user = _norm_moe_graph()
++    g, res_user = _norm_moe_graph(dtype=dtype)
+     fusion_pass(g)
+     fused = torch.ops.vllm.xpu_moe_shared_fused_resadd_norm.default
+     assert _count(g, fused) == 1
+@@ -376,7 +395,7 @@ def test_non_add_combine_unchanged(fusion_pass):
+ def test_wrong_dtype_unchanged(fusion_pass):
+     g, _ = _moe_graph(num_layers=1)
+     x = next(iter(g.nodes))
+-    x.meta["val"] = torch.empty(4, HIDDEN, dtype=torch.bfloat16, device="meta")
++    x.meta["val"] = torch.empty(4, HIDDEN, dtype=torch.float32, device="meta")
+     before, after = _structure_before_after(g, fusion_pass)
+     assert before == after
+ 
+@@ -401,7 +420,7 @@ def _xpu_experts(w1_scale, w2_scale):
+ 
+ def _stub_runner(w13, w2, s13, s2, sw13, ss13, sw2, ss2, gate_w, router_w=None):
+     if router_w is None:
+-        router_w = torch.empty(E, HIDDEN, dtype=torch.float16, device="meta")
++        router_w = torch.empty(E, HIDDEN, dtype=gate_w.dtype, device="meta")
+     parallel = SimpleNamespace(
+         enable_eplb=False,
+         use_ep=False,
+@@ -414,7 +433,7 @@ def _stub_runner(w13, w2, s13, s2, sw13, ss13, sw2, ss2, gate_w, router_w=None):
+         moe_parallel_config=parallel,
+         is_lora_enabled=False,
+         has_bias=False,
+-        in_dtype=torch.float16,
++        in_dtype=gate_w.dtype,
+         experts_per_token=8,
+     )
+     quant_method = SimpleNamespace(
+@@ -446,7 +465,7 @@ def _stub_runner(w13, w2, s13, s2, sw13, ss13, sw2, ss2, gate_w, router_w=None):
+     )
+ 
+ 
+-def _base_runner():
++def _base_runner(dtype=torch.float16):
+     return _stub_runner(
+         _fp8(E, HIDDEN, 2 * I_LOCAL),
+         _fp8(E, I_LOCAL, HIDDEN),
+@@ -456,7 +475,7 @@ def _base_runner():
+         torch.empty(1),
+         _fp8(I_LOCAL, HIDDEN),
+         torch.empty(1),
+-        torch.empty(1, HIDDEN, dtype=torch.float16),
++        torch.empty(1, HIDDEN, dtype=dtype),
+     )
+ 
+ 
+@@ -488,8 +507,34 @@ def _set(obj, path, value):
+     setattr(obj, attr, value)
+ 
+ 
+-def test_base_case_supported(fake_kernel_interface):
+-    assert _reason(_base_runner()) is None
++@pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16])
++def test_base_case_supported(fake_kernel_interface, dtype):
++    assert _reason(_base_runner(dtype=dtype)) is None
++
++
++@pytest.mark.parametrize(
++    "path", ["gate.weight", "shared_experts._layer.expert_gate.weight"]
++)
++def test_bf16_runner_rejects_fp16_gate(fake_kernel_interface, path):
++    runner = _base_runner(dtype=torch.bfloat16)
++    old = (
++        runner.gate.weight
++        if path == "gate.weight"
++        else runner.shared_experts._layer.expert_gate.weight
++    )
++    _set(runner, path, old.to(torch.float16))
++    assert _reason(runner) is not None
++
++
++@pytest.mark.parametrize("input_name", ["x", "res", "w"])
++def test_input_norm_mixed_dtype_keeps_unfused_norm(fusion_pass, input_name):
++    graph, _ = _norm_moe_graph(dtype=torch.bfloat16)
++    value = next(node for node in graph.nodes if node.name == input_name)
++    value.meta["val"] = value.meta["val"].to(torch.float16)
++    fusion_pass.fuse_input_norm = True
++    fusion_pass(graph)
++    assert _count(graph, torch.ops.vllm_ir.fused_add_rms_norm.default) == 1
++    assert _count(graph, FUSED) == 1
+ 
+ 
+ MLP = "shared_experts._layer"
+diff --git a/tests/compile/test_config.py b/tests/compile/test_config.py
+index 73b9412c..7a735614 100644
+--- a/tests/compile/test_config.py
++++ b/tests/compile/test_config.py
+@@ -1443,7 +1443,7 @@ def test_xpu_moe_shared_fusion_disabled_off_xpu():
+ 
+ @pytest.mark.parametrize(
+     "dtype,expected_enabled",
+-    [(torch.float16, True), (torch.bfloat16, False)],
++    [(torch.float16, True), (torch.bfloat16, True), (torch.float32, False)],
+ )
+ def test_xpu_moe_shared_fusion_compile_ranges(dtype, expected_enabled):
+     with patch.object(current_platform, "is_xpu", return_value=True):
+diff --git a/vllm/_xpu_ops.py b/vllm/_xpu_ops.py
+index d8c56742..05b29de8 100644
+--- a/vllm/_xpu_ops.py
++++ b/vllm/_xpu_ops.py
+@@ -854,7 +854,7 @@ def xpu_moe_shared_fused_unsupported_reason(runner) -> str | None:
+         and down.weight.dtype == torch.float8_e4m3fn
+         and gu.weight_scale.numel() == 1
+         and down.weight_scale.numel() == 1
+-        and gate.weight.dtype == torch.float16
++        and gate.weight.dtype == moe_config.in_dtype
+     ):
+         return "weights are not fp8-e4m3 per-tensor"
+     # Routed w13 is [E, H, 2I]; the shared linear weights are [in, out].
+@@ -894,10 +894,10 @@ def _xpu_moe_shared_fused_router_unsupported_reason(
+     if (
+         getattr(gate, "bias", None) is not None
+         or not isinstance(weight, torch.Tensor)
+-        or weight.dtype != torch.float16
++        or weight.dtype != runner.moe_config.in_dtype
+         or tuple(weight.shape) != (num_experts, hidden_size)
+     ):
+-        return "router gate is not an unquantized fp16 [E, H] linear"
++        return "router gate is not an unquantized matching fp16/bf16 [E, H] linear"
+     if not router_supports(
+         weight.dtype, num_experts, runner.moe_config.experts_per_token, hidden_size
+     ):
+diff --git a/vllm/compilation/passes/fusion/xpu_fusion.py b/vllm/compilation/passes/fusion/xpu_fusion.py
+index 7961fd3c..72540379 100644
+--- a/vllm/compilation/passes/fusion/xpu_fusion.py
++++ b/vllm/compilation/passes/fusion/xpu_fusion.py
+@@ -125,7 +125,7 @@ class XpuMoESharedFusionPass(VllmInductorPass):
+         pc = config.parallel_config
+         self.enabled = (
+             hf is not None
+-            and mc.dtype == torch.float16
++            and mc.dtype in (torch.float16, torch.bfloat16)
+             and getattr(hf, "hidden_size", None) == 2048
+             and getattr(hf, "num_experts", None) == 256
+             and getattr(hf, "num_experts_per_tok", None) == 8
+@@ -194,7 +194,11 @@ class XpuMoESharedFusionPass(VllmInductorPass):
+         ):
+             return None, "shared and routed outputs are not simply added"
+         val = hidden.meta.get("val")
+-        if val is None or val.dtype != torch.float16 or val.shape[-1] != 2048:
++        if (
++            val is None
++            or val.dtype not in (torch.float16, torch.bfloat16)
++            or val.shape[-1] != 2048
++        ):
+             return None, "unsupported hidden states dtype/shape"
+         return add, ""
+ 
+@@ -236,12 +240,24 @@ class XpuMoESharedFusionPass(VllmInductorPass):
+             return None
+         w = conv.args[0]
+         w_val = w.meta.get("val") if isinstance(w, fx.Node) else None
++        hidden_val = hidden.meta.get("val")
+         if not (
+             isinstance(w_val, torch.Tensor)
+-            and w_val.dtype == torch.float16
++            and isinstance(hidden_val, torch.Tensor)
++            and w_val.dtype == hidden_val.dtype
+             and tuple(w_val.shape) == (2048,)
+         ):
+             return None
++        for input_node in (x, residual):
++            value = (
++                input_node.meta.get("val") if isinstance(input_node, fx.Node) else None
++            )
++            if not (
++                isinstance(value, torch.Tensor)
++                and value.dtype == hidden_val.dtype
++                and value.shape == hidden_val.shape
++            ):
++                return None
+         return norm, x, residual, w, eps
+ 
+     def _rewrite_with_norm(self, graph, node, add, layer_name, m) -> None:
+diff --git a/vllm/config/vllm.py b/vllm/config/vllm.py
+index 56423e67..a2d367d4 100644
+--- a/vllm/config/vllm.py
++++ b/vllm/config/vllm.py
+@@ -2813,12 +2813,13 @@ class VllmConfig:
+         if (
+             pass_config.fuse_xpu_moe_shared
+             and self.model_config is not None
+-            and self.model_config.dtype != torch.float16
++            and self.model_config.dtype not in (torch.float16, torch.bfloat16)
+         ):
+-            # The fused kernel only supports fp16 activations; disable it
++            # The fused kernel supports FP16/BF16 activations; disable it
+             # here so no unused compile range is added.
+             logger.warning_once(
+-                "XPU MoE + shared-expert fusion requires float16 activations; "
++                "XPU MoE + shared-expert fusion requires float16 or bfloat16 "
++                "activations; "
+                 "got %s. The fusion will be disabled.",
+                 self.model_config.dtype,
+             )

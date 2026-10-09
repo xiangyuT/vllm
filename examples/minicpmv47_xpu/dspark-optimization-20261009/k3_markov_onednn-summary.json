@@ -1,0 +1,17 @@
+{
+  "profile": "k3_markov_onednn",
+  "measured_samples": 3,
+  "prompt_sha256": "122dab552738423ce9ceef0667c4c0820aaf4ec8322f26c18227b9ebe9e04073",
+  "medians": {
+    "ttft_ms": 163.58865704387426,
+    "tpot_ms": 8.821504616050744,
+    "total_ms": 2416.5179589763284
+  },
+  "speculative": {
+    "accepted": 245,
+    "proposed": 1560,
+    "steps": 520,
+    "acceptance_rate": 0.15705128205128205,
+    "mean_acceptance_length": 1.4711538461538463
+  }
+}

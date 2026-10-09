@@ -1,0 +1,20 @@
+[
+  {
+    "trace": "dspark-performance-20261008/traces/baseline_PIECEWISE_fresh/baseline_PIECEWISE_fresh_decode_dp0_pp0_tp0_dcp0_ep0_rank0.1791470946783344955.pt.trace.json.gz",
+    "profiled_decode_iterations": 4,
+    "replay_events": {
+      "zeCommandListAppendGraphExt": 164,
+      "urEnqueueGraphExp": 164
+    },
+    "interpretation": "41 piecewise graph launches per decode iteration per rank; excludes the five timed requests"
+  },
+  {
+    "trace": "dspark-performance-20261008/traces/baseline_PIECEWISE_fresh/baseline_PIECEWISE_fresh_decode_dp0_pp0_tp1_dcp0_ep1_rank1.1791470946752173167.pt.trace.json.gz",
+    "profiled_decode_iterations": 4,
+    "replay_events": {
+      "zeCommandListAppendGraphExt": 164,
+      "urEnqueueGraphExp": 164
+    },
+    "interpretation": "41 piecewise graph launches per decode iteration per rank; excludes the five timed requests"
+  }
+]

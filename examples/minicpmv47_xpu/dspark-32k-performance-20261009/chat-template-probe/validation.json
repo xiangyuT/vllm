@@ -1,0 +1,30 @@
+{
+  "GSM8K_20_chat_and_20_raw_executed": true,
+  "response_reuse": false,
+  "chat_accuracy": "19/20",
+  "raw_accuracy": "18/20",
+  "runtime_code_changed": false,
+  "GPU_used": [
+    0,
+    1
+  ],
+  "community_subagent_used_GPU": false,
+  "source_base": "95307ac6d4cd8be2c1e38f236e9104c569af9025",
+  "frame_tokens_expected": [
+    "model tokenizer actual /tokenize output",
+    "add_generation_prompt True",
+    "enable_thinking False"
+  ],
+  "runtime_source_26_files_unchanged": true,
+  "GPU_01_released": true,
+  "artifact_sha256": {
+    "PLAN.json": "ec814741ea16c4192165fd015cc86b614606f10f178ee803ba8c21679552faf5",
+    "questions.json": "d2ebe0a7e8c6ff45b141359867f0717dd20f258463e60b586f313e676f6d5dad",
+    "summary.json": "9e8841c773299b0b2b7c32f4d1ab778872e694e58bcca48c352a72b82ce6165b",
+    "release.json": "29c467aa17c15537e23805a971fa8a186561ce0998343ec9d88f55b7de77a295",
+    "community-findings.json": "8caa36f2ae0822a06bcf895e220d40e7a567bfec2d95aa0d922e8d7791dedc90"
+  },
+  "chat_template_sha256": "c4531cacbf2a0ab65170433d7a4f371d11b7599cf96c04b192e6372432636c70",
+  "suffix_6_responses_validated": true,
+  "scope": "40 new GSM responses,9 new formatting responses,6 new suffix responses; warmups excluded; previous32K table row referenced separately"
+}

@@ -1,0 +1,139 @@
+[
+  {
+    "profile": "baseline_FULL",
+    "measured_samples": 3,
+    "input_tokens": 32768,
+    "medians": {
+      "ttft_ms": 2815.433253068477,
+      "textual_ttft_ms": 2815.433253068477,
+      "decode_ms": 3148.03260890767,
+      "tpot_ms": 12.34522591728498,
+      "total_ms": 5962.532836943865
+    },
+    "completion_tokens": [
+      256,
+      256,
+      256
+    ],
+    "finish_reasons": [
+      "length",
+      "length",
+      "length"
+    ],
+    "first_token_batch_counts": [
+      1,
+      1,
+      1
+    ],
+    "evidence_class": "development_real_text_32k_fixed256_end_to_end_performance",
+    "formal_acceptance": false,
+    "graph_replay_evidence": [
+      "MINICPM FULL GRAPH REPLAY ModelCudaGraphManager rank 0 descriptor BatchExecutionDescriptor(cg_mode=<CUDAGraphMode.FULL: 2>, num_tokens=1, num_reqs=1, uniform_token_count=1, max_query_len=None, num_active_loras=0, num_ubatches=1) graph_type XPUGraph captured_graphs 1",
+      "MINICPM FULL GRAPH REPLAY ModelCudaGraphManager rank 1 descriptor BatchExecutionDescriptor(cg_mode=<CUDAGraphMode.FULL: 2>, num_tokens=1, num_reqs=1, uniform_token_count=1, max_query_len=None, num_active_loras=0, num_ubatches=1) graph_type XPUGraph captured_graphs 1"
+    ],
+    "change_vs_non_speculative_pct": {
+      "ttft_ms": 0.0,
+      "tpot_ms": 0.0,
+      "total_ms": 0.0
+    }
+  },
+  {
+    "profile": "k3_bf16_FULL",
+    "measured_samples": 3,
+    "input_tokens": 32768,
+    "medians": {
+      "ttft_ms": 3045.710409991443,
+      "textual_ttft_ms": 3045.710409991443,
+      "decode_ms": 6432.816826971248,
+      "tpot_ms": 25.226732654789206,
+      "total_ms": 9480.523779056966
+    },
+    "completion_tokens": [
+      256,
+      256,
+      256
+    ],
+    "finish_reasons": [
+      "length",
+      "length",
+      "length"
+    ],
+    "first_token_batch_counts": [
+      1,
+      1,
+      1
+    ],
+    "evidence_class": "development_real_text_32k_fixed256_end_to_end_performance",
+    "formal_acceptance": false,
+    "speculative": {
+      "steps": 618,
+      "accepted": 147,
+      "proposed": 1854,
+      "draft_acceptance_rate": 0.07928802588996764,
+      "mean_acceptance_length": 1.237864077669903
+    },
+    "graph_replay_evidence": [
+      "MINICPM FULL GRAPH REPLAY DFlashCudaGraphManager rank 0 descriptor BatchExecutionDescriptor(cg_mode=<CUDAGraphMode.FULL: 2>, num_tokens=3, num_reqs=1, uniform_token_count=3, max_query_len=None, num_active_loras=0, num_ubatches=1) graph_type XPUGraph captured_graphs 1",
+      "MINICPM FULL GRAPH REPLAY DFlashCudaGraphManager rank 1 descriptor BatchExecutionDescriptor(cg_mode=<CUDAGraphMode.FULL: 2>, num_tokens=3, num_reqs=1, uniform_token_count=3, max_query_len=None, num_active_loras=0, num_ubatches=1) graph_type XPUGraph captured_graphs 1",
+      "MINICPM FULL GRAPH REPLAY ModelCudaGraphManager rank 1 descriptor BatchExecutionDescriptor(cg_mode=<CUDAGraphMode.FULL: 2>, num_tokens=4, num_reqs=1, uniform_token_count=4, max_query_len=None, num_active_loras=0, num_ubatches=1) graph_type XPUGraph captured_graphs 1",
+      "MINICPM FULL GRAPH REPLAY ModelCudaGraphManager rank 0 descriptor BatchExecutionDescriptor(cg_mode=<CUDAGraphMode.FULL: 2>, num_tokens=4, num_reqs=1, uniform_token_count=4, max_query_len=None, num_active_loras=0, num_ubatches=1) graph_type XPUGraph captured_graphs 1"
+    ],
+    "change_vs_non_speculative_pct": {
+      "ttft_ms": -8.179101979135623,
+      "tpot_ms": -104.34403407286683,
+      "total_ms": -59.00161958548258
+    }
+  },
+  {
+    "profile": "k3_heads_fp8_FULL",
+    "measured_samples": 3,
+    "input_tokens": 32768,
+    "medians": {
+      "ttft_ms": 3033.913612132892,
+      "textual_ttft_ms": 3033.913612132892,
+      "decode_ms": 6016.22214098461,
+      "tpot_ms": 23.593028003861214,
+      "total_ms": 9050.135753117502
+    },
+    "completion_tokens": [
+      256,
+      256,
+      256
+    ],
+    "finish_reasons": [
+      "length",
+      "length",
+      "length"
+    ],
+    "first_token_batch_counts": [
+      1,
+      1,
+      1
+    ],
+    "evidence_class": "development_real_text_32k_fixed256_end_to_end_performance",
+    "formal_acceptance": false,
+    "speculative": {
+      "steps": 591,
+      "accepted": 180,
+      "proposed": 1773,
+      "draft_acceptance_rate": 0.10152284263959391,
+      "mean_acceptance_length": 1.3045685279187818
+    },
+    "graph_replay_evidence": [
+      "MINICPM FULL GRAPH REPLAY DFlashCudaGraphManager rank 1 descriptor BatchExecutionDescriptor(cg_mode=<CUDAGraphMode.FULL: 2>, num_tokens=3, num_reqs=1, uniform_token_count=3, max_query_len=None, num_active_loras=0, num_ubatches=1) graph_type XPUGraph captured_graphs 1",
+      "MINICPM FULL GRAPH REPLAY DFlashCudaGraphManager rank 0 descriptor BatchExecutionDescriptor(cg_mode=<CUDAGraphMode.FULL: 2>, num_tokens=3, num_reqs=1, uniform_token_count=3, max_query_len=None, num_active_loras=0, num_ubatches=1) graph_type XPUGraph captured_graphs 1",
+      "MINICPM FULL GRAPH REPLAY ModelCudaGraphManager rank 1 descriptor BatchExecutionDescriptor(cg_mode=<CUDAGraphMode.FULL: 2>, num_tokens=4, num_reqs=1, uniform_token_count=4, max_query_len=None, num_active_loras=0, num_ubatches=1) graph_type XPUGraph captured_graphs 1",
+      "MINICPM FULL GRAPH REPLAY ModelCudaGraphManager rank 0 descriptor BatchExecutionDescriptor(cg_mode=<CUDAGraphMode.FULL: 2>, num_tokens=4, num_reqs=1, uniform_token_count=4, max_query_len=None, num_active_loras=0, num_ubatches=1) graph_type XPUGraph captured_graphs 1"
+    ],
+    "change_vs_non_speculative_pct": {
+      "ttft_ms": -7.760097271931356,
+      "tpot_ms": -91.11054072188178,
+      "total_ms": -51.7834115234191
+    },
+    "change_vs_k3_bf16_pct": {
+      "ttft_ms": 0.38732500042853013,
+      "tpot_ms": 6.4760850058711,
+      "total_ms": 4.5397072563671745
+    }
+  }
+]

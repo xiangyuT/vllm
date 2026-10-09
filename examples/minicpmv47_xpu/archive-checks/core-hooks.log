@@ -1,0 +1,88 @@
+ruff check..........................................................................................Passed
+ruff format.........................................................................................Failed
+- hook id: ruff-format
+- files were modified by this hook
+
+1 file reformatted, 24 files left unchanged
+
+typos...............................................................................................Passed
+clang-format....................................................................(no files to check)Skipped
+markdownlint-cli2...................................................................................Passed
+Lint GitHub Actions workflow files..............................................(no files to check)Skipped
+shellcheck......................................................................(no files to check)Skipped
+pip-compile.....................................................................(no files to check)Skipped
+pip-compile-rocm................................................................(no files to check)Skipped
+pip-compile-xpu.................................................................(no files to check)Skipped
+pip-compile-cpu.................................................................(no files to check)Skipped
+pip-compile-docs................................................................(no files to check)Skipped
+check json......................................................................(no files to check)Skipped
+reformat test/nightly-torch.txt to be in sync with test/cuda.in.................(no files to check)Skipped
+Check auto-label rules still match real files...................................(no files to check)Skipped
+Check agent instruction files and skills........................................(no files to check)Skipped
+- hook id: check-agent-files
+Check every Buildkite step declares an explicit key.............................(no files to check)Skipped
+Check new tests are wired into Buildkite CI.........................................................Passed
+- hook id: check-test-tethering
+- duration: 1.54s
+Run mypy for Python 3.10............................................................................Failed
+- hook id: mypy-3.10
+- exit code: 1
+
+vllm/_xpu_ops.py:935: error: Item "None" of "Any | None" has no attribute "gate_up_proj"  [union-attr]
+vllm/_xpu_ops.py:936: error: Item "None" of "Any | None" has no attribute "gate_up_proj"  [union-attr]
+vllm/_xpu_ops.py:937: error: Item "None" of "Any | None" has no attribute "down_proj"  [union-attr]
+vllm/_xpu_ops.py:938: error: Item "None" of "Any | None" has no attribute "down_proj"  [union-attr]
+vllm/_xpu_ops.py:939: error: Item "None" of "Any | None" has no attribute "expert_gate"  [union-attr]
+vllm/compilation/passes/fusion/xpu_fusion.py:596: error: Item "None" of "Any | None" has no attribute "dim"  [union-attr]
+vllm/compilation/passes/fusion/xpu_fusion.py:597: error: Item "None" of "Any | None" has no attribute "shape"  [union-attr]
+vllm/compilation/passes/fusion/xpu_fusion.py:598: error: Item "None" of "Any | None" has no attribute "dtype"  [union-attr]
+vllm/compilation/passes/fusion/xpu_fusion.py:599: error: Item "None" of "Any | None" has no attribute "dim"  [union-attr]
+vllm/compilation/passes/fusion/xpu_fusion.py:600: error: Item "None" of "Any | None" has no attribute "dtype"  [union-attr]
+vllm/compilation/passes/fusion/xpu_fusion.py:601: error: Item "None" of "Any | None" has no attribute "shape"  [union-attr]
+vllm/compilation/passes/fusion/xpu_fusion.py:602: error: Item "None" of "Any | None" has no attribute "shape"  [union-attr]
+vllm/compilation/passes/fusion/xpu_fusion.py:603: error: Item "None" of "Any | None" has no attribute "dim"  [union-attr]
+vllm/compilation/passes/fusion/xpu_fusion.py:604: error: Item "None" of "Any | None" has no attribute "shape"  [union-attr]
+vllm/compilation/passes/fusion/xpu_fusion.py:605: error: Item "None" of "Any | None" has no attribute "dtype"  [union-attr]
+tests/compile/passes/test_xpu_fusion.py:309: error: Module has no attribute "xpu_moe_shared_fused_unsupported_reason"  [attr-defined]
+tests/compile/passes/test_xpu_fusion.py:490: error: Module has no attribute "supports"  [attr-defined]
+tests/compile/passes/test_xpu_fusion.py:491: error: Module has no attribute "router_supports"  [attr-defined]
+tests/compile/passes/test_xpu_fusion.py:657: error: Need type annotation for "captured" (hint: "captured: list[<type>] = ...")  [var-annotated]
+vllm/model_executor/models/minicpmv4_6.py:194: error: Unexpected keyword argument "modality" for "get_merged_mm_kwargs" of "InputProcessingContext"  [call-arg]
+vllm/model_executor/models/minicpmv4_6.py:194: note: "get_merged_mm_kwargs" defined in "vllm.multimodal.processing.context"
+vllm/model_executor/models/minicpmv4_6.py:214: error: Unexpected keyword argument "modality" for "get_merged_mm_kwargs" of "InputProcessingContext"  [call-arg]
+vllm/model_executor/models/minicpmv4_6.py:214: note: "get_merged_mm_kwargs" defined in "vllm.multimodal.processing.context"
+vllm/model_executor/models/minicpmv4_7.py:30: error: Unexpected keyword argument "modality" for "get_merged_mm_kwargs" of "InputProcessingContext"  [call-arg]
+vllm/model_executor/models/minicpmv4_7.py:30: note: "get_merged_mm_kwargs" defined in "vllm.multimodal.processing.context"
+Found 22 errors in 5 files (checked 18 source files)
+Success: no issues found in 1 source file
+Success: no issues found in 2 source files
+Success: no issues found in 1 source file
+Success: no issues found in 1 source file
+Success: no issues found in 2 source files
+$ mypy --python-version 3.10 
+$ mypy --python-version 3.10 --follow-imports skip tests/compile
+$ mypy --python-version 3.10 --follow-imports skip tests/model_executor
+$ mypy --python-version 3.10 --follow-imports skip tests/models
+$ mypy --python-version 3.10 --follow-imports skip tests/parser
+$ mypy --python-version 3.10 --follow-imports skip tests/v1/worker
+
+Lint PNG exports from excalidraw................................................(no files to check)Skipped
+Check SPDX headers..................................................................................Passed
+Check root lazy imports.............................................................................Passed
+Check for spaces in all filenames...................................................................Passed
+Update Dockerfile dependency graph..................................................................Passed
+Test non-root entrypoint wrapper................................................(no files to check)Skipped
+Check for forbidden imports.........................................................................Passed
+Prevent new 'torch.cuda' APIs call..................................................................Passed
+Validate configuration has default values and that each field has a docstring.......................Passed
+Validate docker/versions.json matches Dockerfile................................(no files to check)Skipped
+Check for boolean ops in with-statements............................................................Passed
+Rust - Normalize Cargo manifests with autoinherit...............................(no files to check)Skipped
+Rust - Sort Cargo manifest sections.............................................(no files to check)Skipped
+Rust - Format code..............................................................(no files to check)Skipped
+Suggestion..........................................................................................Passed
+- hook id: suggestion
+- duration: 0s
+
+To bypass all the pre-commit hooks, add --no-verify to git commit. To skip a specific hook, prefix the commit command with SKIP=<hook-id>.
+

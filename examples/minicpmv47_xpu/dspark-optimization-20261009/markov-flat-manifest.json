@@ -1,0 +1,15 @@
+{
+  "namespace": "vllm::fp8_markov_flat",
+  "source_sha256": "78f974bb7ad0f8dc9756e473e634d7eb223179cc662bcb7f43ffacd5c625bc26",
+  "library_sha256": "2b089ca58510007fa0a359c0c2f0636601a9fd646478c45978930a4dc6dd97d9",
+  "policies": {
+    "0": "rows4 WG256",
+    "1": "rows8 WG256",
+    "2": "rows16 WG256",
+    "3": "rows4 WG128",
+    "4": "rows8 WG128",
+    "5": "rows16 WG128",
+    "onednn": "original stock C++ FP8 matmul, bypass generic GEMV"
+  },
+  "scope": "FP16/BF16 [1,256] and FP8 [N,256], no package/version changes"
+}

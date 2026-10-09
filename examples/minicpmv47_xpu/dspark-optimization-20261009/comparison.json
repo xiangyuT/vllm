@@ -1,0 +1,503 @@
+{
+  "evidence_class": "development_three_sample_medians",
+  "profiles": [
+    {
+      "label": "k3_bf16",
+      "measured_samples": 3,
+      "medians": {
+        "ttft_ms": 163.36878505535424,
+        "tpot_ms": 9.005389898540635,
+        "total_ms": 2463.7133290525526
+      },
+      "reduction_vs_fresh_k3_bf16_pct": 0.0,
+      "speculative": {
+        "accepted": 239,
+        "proposed": 1578,
+        "steps": 526,
+        "acceptance_rate": 0.1514575411913815,
+        "mean_acceptance_length": 1.4543726235741445
+      },
+      "pooled_decode_window_ms_per_reported_round": 13.258485429824646,
+      "gsm8k": {
+        "profile": "k3_bf16",
+        "num_questions": 20,
+        "correct": 19,
+        "accuracy": 0.95,
+        "invalid_answers": 0,
+        "length_truncations": 0,
+        "total_output_tokens": 3802,
+        "evaluation_wall_seconds": 16.551453878171742,
+        "median_question_seconds": 0.7348652739310637,
+        "max_concurrency": 1,
+        "num_shots": 5,
+        "temperature": 0,
+        "seed": 7,
+        "max_tokens": 1024,
+        "reused_natural_eos_results": 0,
+        "executed_questions_this_run": 20,
+        "timing_note": "wall time includes newly executed questions only; reused per-question timings retain their original provenance"
+      },
+      "samples": [
+        {
+          "index": 2,
+          "ttft_ms": 163.2620650343597,
+          "tpot_ms": 9.005389898540635,
+          "total_ms": 2459.6364891622216,
+          "usage": {
+            "prompt_tokens": 2048,
+            "total_tokens": 2304,
+            "completion_tokens": 256
+          },
+          "content_chunks": 174,
+          "request_metrics": {
+            "speculative_decoding": {
+              "mean_acceptance_length": 1.4739884393063583,
+              "draft_acceptance_rate": 0.1579961464354528,
+              "acceptance_histogram": [
+                116,
+                41,
+                7,
+                9
+              ],
+              "num_spec_steps": 173,
+              "num_accepted_draft_tokens": 82,
+              "num_draft_tokens": 519,
+              "num_spec_tokens": 3
+            }
+          }
+        },
+        {
+          "index": 3,
+          "ttft_ms": 163.36878505535424,
+          "tpot_ms": 9.339357721710615,
+          "total_ms": 2544.905004091561,
+          "usage": {
+            "prompt_tokens": 2048,
+            "total_tokens": 2304,
+            "completion_tokens": 256
+          },
+          "content_chunks": 181,
+          "request_metrics": {
+            "speculative_decoding": {
+              "mean_acceptance_length": 1.4166666666666667,
+              "draft_acceptance_rate": 0.1388888888888889,
+              "acceptance_histogram": [
+                125,
+                40,
+                10,
+                5
+              ],
+              "num_spec_steps": 180,
+              "num_accepted_draft_tokens": 75,
+              "num_draft_tokens": 540,
+              "num_spec_tokens": 3
+            }
+          }
+        },
+        {
+          "index": 4,
+          "ttft_ms": 167.66063612885773,
+          "tpot_ms": 9.004128207543902,
+          "total_ms": 2463.7133290525526,
+          "usage": {
+            "prompt_tokens": 2048,
+            "total_tokens": 2304,
+            "completion_tokens": 256
+          },
+          "content_chunks": 174,
+          "request_metrics": {
+            "speculative_decoding": {
+              "mean_acceptance_length": 1.4739884393063583,
+              "draft_acceptance_rate": 0.1579961464354528,
+              "acceptance_histogram": [
+                116,
+                41,
+                7,
+                9
+              ],
+              "num_spec_steps": 173,
+              "num_accepted_draft_tokens": 82,
+              "num_draft_tokens": 519,
+              "num_spec_tokens": 3
+            }
+          }
+        }
+      ]
+    },
+    {
+      "label": "k3_markov_fp8",
+      "measured_samples": 3,
+      "medians": {
+        "ttft_ms": 164.05105800367892,
+        "tpot_ms": 9.01503568953451,
+        "total_ms": 2463.028598111123
+      },
+      "reduction_vs_fresh_k3_bf16_pct": -0.10711130892220311,
+      "speculative": {
+        "accepted": 246,
+        "proposed": 1557,
+        "steps": 519,
+        "acceptance_rate": 0.1579961464354528,
+        "mean_acceptance_length": 1.4739884393063583
+      },
+      "pooled_decode_window_ms_per_reported_round": 13.288232693466608,
+      "gsm8k": {
+        "profile": "k3_markov_fp8",
+        "num_questions": 20,
+        "correct": 19,
+        "accuracy": 0.95,
+        "invalid_answers": 0,
+        "length_truncations": 0,
+        "total_output_tokens": 3802,
+        "evaluation_wall_seconds": 16.547964189900085,
+        "median_question_seconds": 0.7301302248379216,
+        "max_concurrency": 1,
+        "num_shots": 5,
+        "temperature": 0,
+        "seed": 7,
+        "max_tokens": 1024,
+        "reused_natural_eos_results": 0,
+        "executed_questions_this_run": 20,
+        "timing_note": "wall time includes newly executed questions only; reused per-question timings retain their original provenance"
+      },
+      "samples": [
+        {
+          "index": 2,
+          "ttft_ms": 163.35612419061363,
+          "tpot_ms": 9.01503568953451,
+          "total_ms": 2462.1902250219136,
+          "usage": {
+            "prompt_tokens": 2048,
+            "total_tokens": 2304,
+            "completion_tokens": 256
+          },
+          "content_chunks": 174,
+          "request_metrics": {
+            "speculative_decoding": {
+              "mean_acceptance_length": 1.4739884393063583,
+              "draft_acceptance_rate": 0.1579961464354528,
+              "acceptance_histogram": [
+                116,
+                41,
+                7,
+                9
+              ],
+              "num_spec_steps": 173,
+              "num_accepted_draft_tokens": 82,
+              "num_draft_tokens": 519,
+              "num_spec_tokens": 3
+            }
+          }
+        },
+        {
+          "index": 3,
+          "ttft_ms": 164.05105800367892,
+          "tpot_ms": 9.01559819649978,
+          "total_ms": 2463.028598111123,
+          "usage": {
+            "prompt_tokens": 2048,
+            "total_tokens": 2304,
+            "completion_tokens": 256
+          },
+          "content_chunks": 174,
+          "request_metrics": {
+            "speculative_decoding": {
+              "mean_acceptance_length": 1.4739884393063583,
+              "draft_acceptance_rate": 0.1579961464354528,
+              "acceptance_histogram": [
+                116,
+                41,
+                7,
+                9
+              ],
+              "num_spec_steps": 173,
+              "num_accepted_draft_tokens": 82,
+              "num_draft_tokens": 519,
+              "num_spec_tokens": 3
+            }
+          }
+        },
+        {
+          "index": 4,
+          "ttft_ms": 168.48761006258428,
+          "tpot_ms": 9.014827948903628,
+          "total_ms": 2467.2687370330095,
+          "usage": {
+            "prompt_tokens": 2048,
+            "total_tokens": 2304,
+            "completion_tokens": 256
+          },
+          "content_chunks": 174,
+          "request_metrics": {
+            "speculative_decoding": {
+              "mean_acceptance_length": 1.4739884393063583,
+              "draft_acceptance_rate": 0.1579961464354528,
+              "acceptance_histogram": [
+                116,
+                41,
+                7,
+                9
+              ],
+              "num_spec_steps": 173,
+              "num_accepted_draft_tokens": 82,
+              "num_draft_tokens": 519,
+              "num_spec_tokens": 3
+            }
+          }
+        }
+      ]
+    },
+    {
+      "label": "k3_markov_onednn",
+      "measured_samples": 3,
+      "medians": {
+        "ttft_ms": 163.58865704387426,
+        "tpot_ms": 8.821504616050744,
+        "total_ms": 2416.5179589763284
+      },
+      "reduction_vs_fresh_k3_bf16_pct": 2.0419469291350745,
+      "speculative": {
+        "accepted": 245,
+        "proposed": 1560,
+        "steps": 520,
+        "acceptance_rate": 0.15705128205128205,
+        "mean_acceptance_length": 1.4711538461538463
+      },
+      "pooled_decode_window_ms_per_reported_round": 13.001442136457907,
+      "gsm8k": {
+        "profile": "k3_markov_onednn",
+        "num_questions": 20,
+        "correct": 19,
+        "accuracy": 0.95,
+        "invalid_answers": 0,
+        "length_truncations": 0,
+        "total_output_tokens": 3802,
+        "evaluation_wall_seconds": 16.22060850611888,
+        "median_question_seconds": 0.7162449149182066,
+        "max_concurrency": 1,
+        "num_shots": 5,
+        "temperature": 0,
+        "seed": 7,
+        "max_tokens": 1024,
+        "reused_natural_eos_results": 0,
+        "executed_questions_this_run": 20,
+        "timing_note": "wall time includes newly executed questions only; reused per-question timings retain their original provenance"
+      },
+      "samples": [
+        {
+          "index": 2,
+          "ttft_ms": 163.58865704387426,
+          "tpot_ms": 8.821504616050744,
+          "total_ms": 2413.072334136814,
+          "usage": {
+            "prompt_tokens": 2048,
+            "total_tokens": 2304,
+            "completion_tokens": 256
+          },
+          "content_chunks": 174,
+          "request_metrics": {
+            "speculative_decoding": {
+              "mean_acceptance_length": 1.4739884393063583,
+              "draft_acceptance_rate": 0.1579961464354528,
+              "acceptance_histogram": [
+                116,
+                41,
+                7,
+                9
+              ],
+              "num_spec_steps": 173,
+              "num_accepted_draft_tokens": 82,
+              "num_draft_tokens": 519,
+              "num_spec_tokens": 3
+            }
+          }
+        },
+        {
+          "index": 3,
+          "ttft_ms": 162.57771500386298,
+          "tpot_ms": 8.872909988185354,
+          "total_ms": 2425.1697619911283,
+          "usage": {
+            "prompt_tokens": 2048,
+            "total_tokens": 2304,
+            "completion_tokens": 256
+          },
+          "content_chunks": 175,
+          "request_metrics": {
+            "speculative_decoding": {
+              "mean_acceptance_length": 1.4655172413793103,
+              "draft_acceptance_rate": 0.15517241379310345,
+              "acceptance_histogram": [
+                119,
+                38,
+                8,
+                9
+              ],
+              "num_spec_steps": 174,
+              "num_accepted_draft_tokens": 81,
+              "num_draft_tokens": 522,
+              "num_spec_tokens": 3
+            }
+          }
+        },
+        {
+          "index": 4,
+          "ttft_ms": 167.84377209842205,
+          "tpot_ms": 8.81833014461924,
+          "total_ms": 2416.5179589763284,
+          "usage": {
+            "prompt_tokens": 2048,
+            "total_tokens": 2304,
+            "completion_tokens": 256
+          },
+          "content_chunks": 174,
+          "request_metrics": {
+            "speculative_decoding": {
+              "mean_acceptance_length": 1.4739884393063583,
+              "draft_acceptance_rate": 0.1579961464354528,
+              "acceptance_histogram": [
+                116,
+                41,
+                7,
+                9
+              ],
+              "num_spec_steps": 173,
+              "num_accepted_draft_tokens": 82,
+              "num_draft_tokens": 519,
+              "num_spec_tokens": 3
+            }
+          }
+        }
+      ]
+    },
+    {
+      "label": "k3_heads_fp8",
+      "measured_samples": 3,
+      "medians": {
+        "ttft_ms": 164.45097397081554,
+        "tpot_ms": 8.529901725477448,
+        "total_ms": 2343.5397050343454
+      },
+      "reduction_vs_fresh_k3_bf16_pct": 5.280039825263339,
+      "speculative": {
+        "accepted": 239,
+        "proposed": 1578,
+        "steps": 526,
+        "acceptance_rate": 0.1514575411913815,
+        "mean_acceptance_length": 1.4543726235741445
+      },
+      "pooled_decode_window_ms_per_reported_round": 12.561815395108477,
+      "gsm8k": {
+        "profile": "k3_heads_fp8",
+        "num_questions": 20,
+        "correct": 19,
+        "accuracy": 0.95,
+        "invalid_answers": 0,
+        "length_truncations": 0,
+        "total_output_tokens": 3802,
+        "evaluation_wall_seconds": 15.73266800888814,
+        "median_question_seconds": 0.6960780470399186,
+        "max_concurrency": 1,
+        "num_shots": 5,
+        "temperature": 0,
+        "seed": 7,
+        "max_tokens": 1024,
+        "reused_natural_eos_results": 0,
+        "executed_questions_this_run": 20,
+        "timing_note": "wall time includes newly executed questions only; reused per-question timings retain their original provenance"
+      },
+      "samples": [
+        {
+          "index": 2,
+          "ttft_ms": 164.3996681086719,
+          "tpot_ms": 8.852093728880087,
+          "total_ms": 2421.683568973094,
+          "usage": {
+            "prompt_tokens": 2048,
+            "total_tokens": 2304,
+            "completion_tokens": 256
+          },
+          "content_chunks": 181,
+          "request_metrics": {
+            "speculative_decoding": {
+              "mean_acceptance_length": 1.4166666666666667,
+              "draft_acceptance_rate": 0.1388888888888889,
+              "acceptance_histogram": [
+                125,
+                40,
+                10,
+                5
+              ],
+              "num_spec_steps": 180,
+              "num_accepted_draft_tokens": 75,
+              "num_draft_tokens": 540,
+              "num_spec_tokens": 3
+            }
+          }
+        },
+        {
+          "index": 3,
+          "ttft_ms": 164.45097397081554,
+          "tpot_ms": 8.529901725477448,
+          "total_ms": 2339.5759139675647,
+          "usage": {
+            "prompt_tokens": 2048,
+            "total_tokens": 2304,
+            "completion_tokens": 256
+          },
+          "content_chunks": 174,
+          "request_metrics": {
+            "speculative_decoding": {
+              "mean_acceptance_length": 1.4739884393063583,
+              "draft_acceptance_rate": 0.1579961464354528,
+              "acceptance_histogram": [
+                116,
+                41,
+                7,
+                9
+              ],
+              "num_spec_steps": 173,
+              "num_accepted_draft_tokens": 82,
+              "num_draft_tokens": 519,
+              "num_spec_tokens": 3
+            }
+          }
+        },
+        {
+          "index": 4,
+          "ttft_ms": 168.43364806845784,
+          "tpot_ms": 8.52982767437603,
+          "total_ms": 2343.5397050343454,
+          "usage": {
+            "prompt_tokens": 2048,
+            "total_tokens": 2304,
+            "completion_tokens": 256
+          },
+          "content_chunks": 174,
+          "request_metrics": {
+            "speculative_decoding": {
+              "mean_acceptance_length": 1.4739884393063583,
+              "draft_acceptance_rate": 0.1579961464354528,
+              "acceptance_histogram": [
+                116,
+                41,
+                7,
+                9
+              ],
+              "num_spec_steps": 173,
+              "num_accepted_draft_tokens": 82,
+              "num_draft_tokens": 519,
+              "num_spec_tokens": 3
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "current_best": "k3_heads_fp8",
+  "limits": [
+    "fixed 2K/256 input; not all-request or full GSM acceptance",
+    "acceptance may change with rounding; no token-identity gate",
+    "accuracy wall time is single-run diagnostic, not three-sample latency evidence"
+  ]
+}

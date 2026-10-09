@@ -1,0 +1,97 @@
+--- a/vllm/compilation/passes/fusion/xpu_fusion.py
++++ b/vllm/compilation/passes/fusion/xpu_fusion.py
+@@ -563,15 +563,20 @@
+                 ignore_types=(int, torch.SymInt),
+                 argnames=argnames,
+             )
++            # Different head geometries share the wildcard search topology.
++            # Keep every shape guard without treating it as a duplicate rule.
++            registration_pass = PatternMatcherPass()
+             pm.register_replacement(
+                 pattern,
+                 replacement,
+                 inputs,
+                 trace_fn,
+-                pm_pass,
++                registration_pass,
+                 extra_check=self._check,
+                 search_fn_pattern=search_fn_pattern,
+             )
++            for target, entries in registration_pass.patterns.items():
++                pm_pass.patterns[target].extend(entries)
+ 
+     def _check(self, match: pm.Match) -> bool:
+         # Ints are wildcards in the search pattern; pin the geometry here.
+--- a/tests/compile/passes/test_xpu_fusion.py
++++ b/tests/compile/passes/test_xpu_fusion.py
+@@ -940,6 +940,70 @@
+     )
+ 
+ 
++@pytest.mark.parametrize("dtype", [torch.float16, torch.bfloat16])
++def test_qkv_fusion_keeps_rules_for_target_and_draft_heads(monkeypatch, dtype):
++    from torch._higher_order_ops.auto_functionalize import auto_functionalized
++    from torch._inductor.pattern_matcher import PatternMatcherPass
++    from torch._subclasses.fake_tensor import FakeTensorMode
++
++    import vllm.compilation.passes.fusion.xpu_fusion as fusion_module
++    from vllm.config import DeviceConfig
++
++    if not hasattr(torch.ops._xpu_C, "qkv_split_norm_rope"):
++        pytest.skip("qkv_split_norm_rope not available")
++    config = VllmConfig(device_config=DeviceConfig(device="cpu"))
++    matcher = PatternMatcherPass()
++    traced_rules = []
++    register = fusion_module.pm.register_replacement
++
++    def record(search, replacement, inputs, trace, *args, **kwargs):
++        result = register(search, replacement, inputs, trace, *args, **kwargs)
++        traced_rules.append((search, inputs, trace))
++        return result
++
++    monkeypatch.setattr(fusion_module.pm, "register_replacement", record)
++    with (
++        FakeTensorMode(),
++        set_current_vllm_config(config),
++        config.kernel_config.ir_op_priority.set_priority(),
++    ):
++        for heads in (4, 8):
++            pattern = fusion_module.XpuGatedQkvNormRopePattern(
++                num_heads=heads,
++                num_kv_heads=1,
++                eps=1e-6,
++                rope=fusion_module._RopeSpec(
++                    head_dim=256,
++                    rotary_dim=64,
++                    mrope_section=[11, 11, 10],
++                    mrope_interleaved=True,
++                ),
++                mrope_positions=False,
++                dtype=dtype,
++                config=config,
++            )
++            inputs = [
++                torch.empty(5, 2 * heads * 256 + 512, dtype=dtype, device="cpu"),
++                torch.empty(5, dtype=torch.int64, device="cpu"),
++                torch.empty(256, dtype=dtype, device="cpu"),
++                torch.empty(256, dtype=dtype, device="cpu"),
++                torch.empty(4096, 64, dtype=dtype, device="cpu"),
++            ]
++            monkeypatch.setattr(pattern, "get_inputs", lambda inputs=inputs: inputs)
++            pattern.register(matcher)
++
++        for heads, (search, inputs, trace) in zip((4, 8), traced_rules[::2]):
++            graph = trace(search, inputs)
++            assert matcher.apply(graph) == 1
++            fused = next(
++                node
++                for node in graph.graph.nodes
++                if node.target == auto_functionalized
++            )
++            assert fused.kwargs["num_q_heads"] == heads
++            assert fused.kwargs["head_dim"] == 256
++
++
+ @xpu_only
+ @pytest.mark.parametrize("model_cls", [GatedQkvModel, TritonGatedQkvModel])
+ @pytest.mark.parametrize("mrope", [True, False])

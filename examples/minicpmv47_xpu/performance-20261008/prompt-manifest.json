@@ -1,0 +1,8 @@
+{
+  "sha256_utf8": "b3d6cc02119ef32717118e1850a6bbd7b2e2ef0ee9bc056415ac0caaa8463a46",
+  "characters": 49138,
+  "prompt_tokens": 32768,
+  "historical_sha256": "e9da807d9b42f7c01fc65c0bde50756656a56db1b96085af7bf022848e5b55ea",
+  "matches_historical_prompt": false,
+  "construction": "numbered repeated Chinese lines, character-truncated using server /tokenize"
+}

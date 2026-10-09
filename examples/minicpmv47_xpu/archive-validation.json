@@ -1,0 +1,60 @@
+{
+  "cpu_platform": "explicit CpuPlatform; existing build container has no devices or device requests",
+  "gpu_execution": false,
+  "core_python_ruff": "passed in both repositories",
+  "core_diff_check": "passed in both repositories before commit hooks",
+  "archive_python_ast": {
+    "vllm": 133,
+    "kernels": 16
+  },
+  "archive_json_parse": {
+    "vllm": 129,
+    "kernels": 10
+  },
+  "archive_shell_syntax": {
+    "vllm": 4,
+    "kernels": 1
+  },
+  "cpu_results": {
+    "vllm_fusion": {
+      "passed": 59,
+      "skipped": 2,
+      "deselected": 121
+    },
+    "minicpmv47_model": {
+      "passed": 11
+    },
+    "speculative_warmup": {
+      "passed": 6,
+      "deselected": 24
+    },
+    "kernels_dtype_contract": {
+      "passed": 4,
+      "deselected": 66
+    }
+  },
+  "skip_reason": "Two QKV pattern cases require the qkv_split_norm_rope native schema, which is absent from the stock CPU build-container environment.",
+  "harness_retry": "The initial kernels collection lacked the archived Python interface on the imported package path. Adding that archive directory to vllm_xpu_kernels.__path__ allowed all four CPU cases to pass; core source was unchanged.",
+  "not_run": [
+    "GPU execution and performance",
+    "full clean wheel/image build",
+    "full lint or formatting of historical experiment snapshots",
+    "post-archive k3/k7/k15 input-controlled experiment"
+  ],
+  "historical_evidence_is_not_remeasured": true,
+  "core_precommit_result": "failed only for mypy-3.10 after one test formatting adjustment",
+  "mypy_errors": {
+    "optional_attributes": 15,
+    "test_type_declarations_or_dynamic_interfaces": 4,
+    "multimodal_modality_api": 3,
+    "total": 22
+  },
+  "core_commit_hook_exception": "SKIP=mypy-3.10; known failures retained for the requested development snapshot",
+  "archive_snapshot_commit_hooks": "production formatting hooks disabled for the verbatim historical archive commit; hash, AST, JSON, shell and whitespace checks excluding verbatim patch/diff assets performed separately",
+  "index_recovery": "only the new archive worktree index was restored to HEAD and the 26 source files restaged after a dependency installation populated it with the markdownlint repo index",
+  "historical_snapshot_ruff": "Initial scan under production source rules found 497 findings; verbatim snapshots are not lint-clean and were preserved without lint fixes.",
+  "final_archive_python_ast_count": 133,
+  "final_archive_json_count": 130,
+  "source_preservation_verified": true,
+  "archive_whitespace_check": "passed excluding verbatim .patch/.diff/.log evidence records (patch context spaces and captured diagnostic whitespace are retained)"
+}

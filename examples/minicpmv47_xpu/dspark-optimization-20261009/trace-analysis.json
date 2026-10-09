@@ -1,0 +1,43 @@
+{
+  "routing": {
+    "k3_markov_fp8": {
+      "rounds": 64,
+      "layers": 40,
+      "mean_unique": 21.459375,
+      "minimum_unique": 10,
+      "maximum_unique": 32,
+      "both_ranks_equal": true
+    },
+    "k3_markov_onednn": {
+      "rounds": 64,
+      "layers": 40,
+      "mean_unique": 21.459375,
+      "minimum_unique": 10,
+      "maximum_unique": 32,
+      "both_ranks_equal": true
+    }
+  },
+  "phase_trace": {
+    "0": {
+      "ModelCudaGraphManager": {
+        "count": 64,
+        "median_gpu_elapsed_ms": 8.570156
+      },
+      "DFlashCudaGraphManager": {
+        "count": 64,
+        "median_gpu_elapsed_ms": 3.3546354999999997
+      }
+    },
+    "1": {
+      "ModelCudaGraphManager": {
+        "count": 64,
+        "median_gpu_elapsed_ms": 8.674349
+      },
+      "DFlashCudaGraphManager": {
+        "count": 64,
+        "median_gpu_elapsed_ms": 3.3611195
+      }
+    }
+  },
+  "phase_limits": "128 replay events in separate synchronized request; includes peer waits; not a per-kernel trace or unperturbed critical path"
+}

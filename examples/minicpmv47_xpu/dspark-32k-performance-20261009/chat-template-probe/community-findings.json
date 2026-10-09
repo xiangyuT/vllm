@@ -1,0 +1,60 @@
+{
+  "evidence_class": "community_primary_source_review_by_user_requested_subagent",
+  "models": [
+    {
+      "pair": "Qwen3-8B + DeepSeek official DSpark",
+      "k": 7,
+      "temperature": 1,
+      "mode": "non-thinking, fixed block, confidence scheduler disabled",
+      "GSM8K_AL": 6.17,
+      "chat_AL_range": [
+        3.21,
+        3.72
+      ],
+      "AL_includes_bonus": true,
+      "conditional_approx_GSM_acceptance": 0.7385714285714285,
+      "conversion_condition": "fixed seven proposals and one target bonus; terminal trimming changes exact relation",
+      "source": "https://arxiv.org/html/2607.05147v1#S4"
+    },
+    {
+      "pair": "MiniCPM5-2B + official DSpark (different model from MiniCPM-V4.7)",
+      "k": 7,
+      "temperature": 0,
+      "Math_AL": 6.0496,
+      "Code_AL": 6.1106,
+      "General_AL": 4.1585,
+      "reported_AL_definition": "completion tokens / verification steps",
+      "direct_acceptance_percentage": null,
+      "source": "https://huggingface.co/openbmb/MiniCPM5-2B-DSpark#evaluation"
+    },
+    {
+      "pair": "Dogacel/Qwen3-8B-DSpark, unfinished training",
+      "k": 7,
+      "temperature": 1,
+      "task": "SPEED-Bench coding, Chat API, single H100",
+      "AL": 2.33,
+      "reported_acceptance_percentage": 18.9,
+      "source": "https://huggingface.co/Dogacel/Qwen3-8B-DSpark#benchmark"
+    }
+  ],
+  "configuration_hypotheses": [
+    {
+      "name": "sample_from_anchor",
+      "community_result": "unidentified multimodal-OCR checkpoint, k15:0.85% to47.4% when switched to trained fill-in layout",
+      "source": "https://github.com/vllm-project/vllm/issues/56792",
+      "not_evidence_for_MiniCPMV47": true,
+      "counterexample": "DeepSeek official Qwen3-8B also lacks the field and uses anchor-first per paper",
+      "counterexample_source": "https://huggingface.co/deepseek-ai/dspark_qwen3_8b_block7/blob/main/config.json",
+      "local_action": "keep current default True; no verified training-layout evidence to flip it"
+    },
+    {
+      "name": "draft-only recent context window",
+      "community_result": "other DSpark implementations report full-context degradation and recovery with recent4096-row draft window; no paired acceptance ratio table available",
+      "target_preserves_full_context": true,
+      "source": "https://github.com/ARahim3/mlx-dspark/blob/main/CHANGELOG.md#0200--2026-09-28--speculation-holds-at-long-context-185-at-32k-gemma-4-12b-325-red-hats-qwen38-dspark-head",
+      "local_action": "not implemented; same-endpoint whole-history truncation tested separately"
+    }
+  ],
+  "GPU_execution_by_subagent": false,
+  "scope_limit": "published results on other targets/checkpoints are hypotheses for MiniCPM-V4.7, not validation"
+}

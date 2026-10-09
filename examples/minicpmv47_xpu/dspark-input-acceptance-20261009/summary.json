@@ -1,0 +1,50 @@
+{
+  "evidence_class": "exploratory_input_acceptance_diagnostic",
+  "num_requests": 12,
+  "profile": "k3 FULL; main online FP8/BF16; draft BF16 backbone; Markov and draft vocab FP8/BF16 oneDNN",
+  "num_speculative_tokens": 3,
+  "latency_claim": false,
+  "formal_acceptance": false,
+  "modes": {
+    "raw_completion": {
+      "requests": 6,
+      "steps": 918,
+      "accepted": 620,
+      "proposed": 2754,
+      "draft_acceptance_rate": 0.2251270878721859,
+      "mean_acceptance_length": 1.6753812636165577,
+      "fully_accepted_round_fraction": 0.09912854030501089,
+      "total_output_tokens": 1536,
+      "max_exact_source_prefix_tokens": 11,
+      "length_capped_requests": 6,
+      "per_window_acceptance": [
+        0.1286231884057971,
+        0.13405797101449277,
+        0.18813905930470348,
+        0.3231552162849873,
+        0.2718676122931442,
+        0.40869565217391307
+      ]
+    },
+    "chat_continuation": {
+      "requests": 6,
+      "steps": 935,
+      "accepted": 584,
+      "proposed": 2805,
+      "draft_acceptance_rate": 0.20819964349376113,
+      "mean_acceptance_length": 1.6245989304812833,
+      "fully_accepted_round_fraction": 0.051336898395721926,
+      "total_output_tokens": 1518,
+      "max_exact_source_prefix_tokens": 4,
+      "length_capped_requests": 5,
+      "per_window_acceptance": [
+        0.1523809523809524,
+        0.18181818181818182,
+        0.221505376344086,
+        0.23937360178970918,
+        0.2718676122931442,
+        0.19777777777777777
+      ]
+    }
+  }
+}

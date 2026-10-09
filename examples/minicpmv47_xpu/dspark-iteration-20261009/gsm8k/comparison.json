@@ -1,0 +1,107 @@
+{
+  "evidence_class": "gsm8k20_serial_accuracy",
+  "scores": [
+    {
+      "label": "baseline_FULL",
+      "summary": {
+        "profile": "baseline_FULL",
+        "num_questions": 20,
+        "correct": 19,
+        "accuracy": 0.95,
+        "invalid_answers": 0,
+        "length_truncations": 0,
+        "total_output_tokens": 3760,
+        "evaluation_wall_seconds": 43.40822584205307,
+        "median_question_seconds": 1.9216324794106185,
+        "max_concurrency": 1,
+        "num_shots": 5,
+        "temperature": 0,
+        "seed": 7,
+        "max_tokens": 1024,
+        "reused_natural_eos_results": 0,
+        "executed_questions_this_run": 20,
+        "timing_note": "wall time includes newly executed questions only; reused per-question timings retain their original provenance"
+      },
+      "wrong_indices": [
+        12
+      ]
+    },
+    {
+      "label": "k3_FULL",
+      "summary": {
+        "profile": "k3_FULL",
+        "num_questions": 20,
+        "correct": 19,
+        "accuracy": 0.95,
+        "invalid_answers": 0,
+        "length_truncations": 0,
+        "total_output_tokens": 3802,
+        "evaluation_wall_seconds": 16.554457162041217,
+        "median_question_seconds": 0.7328152514528483,
+        "max_concurrency": 1,
+        "num_shots": 5,
+        "temperature": 0,
+        "seed": 7,
+        "max_tokens": 1024,
+        "reused_natural_eos_results": 0,
+        "executed_questions_this_run": 20,
+        "timing_note": "wall time includes newly executed questions only; reused per-question timings retain their original provenance"
+      },
+      "wrong_indices": [
+        12
+      ]
+    },
+    {
+      "label": "k7_FULL",
+      "summary": {
+        "profile": "k7_FULL",
+        "num_questions": 20,
+        "correct": 19,
+        "accuracy": 0.95,
+        "invalid_answers": 0,
+        "length_truncations": 0,
+        "total_output_tokens": 3918,
+        "evaluation_wall_seconds": 15.261298663914204,
+        "median_question_seconds": 0.6955381225561723,
+        "max_concurrency": 1,
+        "num_shots": 5,
+        "temperature": 0,
+        "seed": 7,
+        "max_tokens": 1024,
+        "reused_natural_eos_results": 0,
+        "executed_questions_this_run": 20,
+        "timing_note": "wall time includes newly executed questions only; reused per-question timings retain their original provenance"
+      },
+      "wrong_indices": [
+        12
+      ]
+    },
+    {
+      "label": "m16_FULL",
+      "summary": {
+        "profile": "m16_FULL",
+        "num_questions": 20,
+        "correct": 19,
+        "accuracy": 0.95,
+        "invalid_answers": 0,
+        "length_truncations": 0,
+        "total_output_tokens": 3915,
+        "evaluation_wall_seconds": 17.06152533693239,
+        "median_question_seconds": 0.7729551409138367,
+        "max_concurrency": 1,
+        "num_shots": 5,
+        "temperature": 0,
+        "seed": 7,
+        "max_tokens": 1024,
+        "reused_natural_eos_results": 0,
+        "executed_questions_this_run": 20,
+        "timing_note": "wall time includes newly executed questions only; reused per-question timings retain their original provenance"
+      },
+      "wrong_indices": [
+        12
+      ]
+    }
+  ],
+  "all_same_wrong_question": true,
+  "no_latency_claim_from_single_eval_runs": true
+}

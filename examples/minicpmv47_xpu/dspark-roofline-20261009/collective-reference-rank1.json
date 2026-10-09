@@ -1,0 +1,442 @@
+{
+  "evidence_class": "development_balanced_collective_reference",
+  "identities": [
+    {
+      "logical": 0,
+      "uuid": "868023e2-0000-0000-1800-000000000000",
+      "name": "Intel(R) Arc(TM) Pro B70 Graphics"
+    },
+    {
+      "logical": 1,
+      "uuid": "868023e2-0000-0000-3600-000000000000",
+      "name": "Intel(R) Arc(TM) Pro B70 Graphics"
+    }
+  ],
+  "rows": [
+    {
+      "samples_us": [
+        24.649000260978937,
+        23.31170253455639,
+        28.238689992576838
+      ],
+      "median_us": 24.649000260978937,
+      "repeats_per_sample": 20,
+      "graph": false,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "all_reduce",
+      "logical_device": 1,
+      "rows": 1,
+      "payload_bytes": 4096
+    },
+    {
+      "samples_us": [
+        9.702157694846392,
+        9.240699000656605,
+        9.240210056304932
+      ],
+      "median_us": 9.240699000656605,
+      "repeats_per_sample": 20,
+      "graph": true,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "all_reduce",
+      "logical_device": 1,
+      "rows": 1,
+      "payload_bytes": 4096
+    },
+    {
+      "samples_us": [
+        28.60624808818102,
+        25.919359177350998,
+        26.342994533479214
+      ],
+      "median_us": 26.342994533479214,
+      "repeats_per_sample": 20,
+      "graph": false,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "all_reduce",
+      "logical_device": 1,
+      "rows": 3,
+      "payload_bytes": 12288
+    },
+    {
+      "samples_us": [
+        10.374444536864758,
+        9.88194951787591,
+        10.225700680166483
+      ],
+      "median_us": 10.225700680166483,
+      "repeats_per_sample": 20,
+      "graph": true,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "all_reduce",
+      "logical_device": 1,
+      "rows": 3,
+      "payload_bytes": 12288
+    },
+    {
+      "samples_us": [
+        26.794697623699903,
+        26.65814245119691,
+        25.05044685676694
+      ],
+      "median_us": 26.65814245119691,
+      "repeats_per_sample": 20,
+      "graph": false,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "all_reduce",
+      "logical_device": 1,
+      "rows": 4,
+      "payload_bytes": 16384
+    },
+    {
+      "samples_us": [
+        10.010809637606144,
+        10.08755061775446,
+        9.878852870315313
+      ],
+      "median_us": 10.010809637606144,
+      "repeats_per_sample": 20,
+      "graph": true,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "all_reduce",
+      "logical_device": 1,
+      "rows": 4,
+      "payload_bytes": 16384
+    },
+    {
+      "samples_us": [
+        26.58679150044918,
+        25.916402228176594,
+        26.384799275547266
+      ],
+      "median_us": 26.384799275547266,
+      "repeats_per_sample": 20,
+      "graph": false,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "all_reduce",
+      "logical_device": 1,
+      "rows": 7,
+      "payload_bytes": 28672
+    },
+    {
+      "samples_us": [
+        10.599952656775713,
+        10.287051554769278,
+        10.27984544634819
+      ],
+      "median_us": 10.287051554769278,
+      "repeats_per_sample": 20,
+      "graph": true,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "all_reduce",
+      "logical_device": 1,
+      "rows": 7,
+      "payload_bytes": 28672
+    },
+    {
+      "samples_us": [
+        27.29699481278658,
+        26.65845677256584,
+        25.616399943828583
+      ],
+      "median_us": 26.65845677256584,
+      "repeats_per_sample": 20,
+      "graph": false,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "all_reduce",
+      "logical_device": 1,
+      "rows": 8,
+      "payload_bytes": 32768
+    },
+    {
+      "samples_us": [
+        10.354991536587477,
+        10.06970414891839,
+        10.266050230711699
+      ],
+      "median_us": 10.266050230711699,
+      "repeats_per_sample": 20,
+      "graph": true,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "all_reduce",
+      "logical_device": 1,
+      "rows": 8,
+      "payload_bytes": 32768
+    },
+    {
+      "samples_us": [
+        27.171999681741,
+        25.55985702201724,
+        27.91325096040964
+      ],
+      "median_us": 27.171999681741,
+      "repeats_per_sample": 20,
+      "graph": false,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "all_reduce",
+      "logical_device": 1,
+      "rows": 15,
+      "payload_bytes": 61440
+    },
+    {
+      "samples_us": [
+        11.17469510063529,
+        11.105858720839024,
+        10.878348257392645
+      ],
+      "median_us": 11.105858720839024,
+      "repeats_per_sample": 20,
+      "graph": true,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "all_reduce",
+      "logical_device": 1,
+      "rows": 15,
+      "payload_bytes": 61440
+    },
+    {
+      "samples_us": [
+        27.31489948928356,
+        26.84079809114337,
+        26.585848536342382
+      ],
+      "median_us": 26.84079809114337,
+      "repeats_per_sample": 20,
+      "graph": false,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "all_reduce",
+      "logical_device": 1,
+      "rows": 16,
+      "payload_bytes": 65536
+    },
+    {
+      "samples_us": [
+        10.967999696731567,
+        11.06054987758398,
+        11.095707304775715
+      ],
+      "median_us": 11.06054987758398,
+      "repeats_per_sample": 20,
+      "graph": true,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "all_reduce",
+      "logical_device": 1,
+      "rows": 16,
+      "payload_bytes": 65536
+    },
+    {
+      "samples_us": [
+        25.633512996137142,
+        21.291407756507397,
+        21.70889638364315
+      ],
+      "median_us": 21.70889638364315,
+      "repeats_per_sample": 10,
+      "graph": false,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "vocab_all_gather",
+      "logical_device": 1,
+      "rows": 1,
+      "payload_bytes": 248192
+    },
+    {
+      "samples_us": [
+        20.008394494652748,
+        19.698496907949448,
+        19.59309447556734
+      ],
+      "median_us": 19.698496907949448,
+      "repeats_per_sample": 10,
+      "graph": true,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "vocab_all_gather",
+      "logical_device": 1,
+      "rows": 1,
+      "payload_bytes": 248192
+    },
+    {
+      "samples_us": [
+        45.29301077127457,
+        45.52020691335201,
+        44.65728998184204
+      ],
+      "median_us": 45.29301077127457,
+      "repeats_per_sample": 10,
+      "graph": false,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "vocab_all_gather",
+      "logical_device": 1,
+      "rows": 3,
+      "payload_bytes": 744576
+    },
+    {
+      "samples_us": [
+        45.68011499941349,
+        45.66749557852745,
+        46.338397078216076
+      ],
+      "median_us": 45.68011499941349,
+      "repeats_per_sample": 10,
+      "graph": true,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "vocab_all_gather",
+      "logical_device": 1,
+      "rows": 3,
+      "payload_bytes": 744576
+    },
+    {
+      "samples_us": [
+        59.94569510221481,
+        59.782201424241066,
+        59.541710652410984
+      ],
+      "median_us": 59.782201424241066,
+      "repeats_per_sample": 10,
+      "graph": false,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "vocab_all_gather",
+      "logical_device": 1,
+      "rows": 4,
+      "payload_bytes": 992768
+    },
+    {
+      "samples_us": [
+        59.90150384604931,
+        60.03500893712044,
+        60.218386352062225
+      ],
+      "median_us": 60.03500893712044,
+      "repeats_per_sample": 10,
+      "graph": true,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "vocab_all_gather",
+      "logical_device": 1,
+      "rows": 4,
+      "payload_bytes": 992768
+    },
+    {
+      "samples_us": [
+        89.92028888314962,
+        90.62711615115404,
+        91.17389563471079
+      ],
+      "median_us": 90.62711615115404,
+      "repeats_per_sample": 10,
+      "graph": false,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "vocab_all_gather",
+      "logical_device": 1,
+      "rows": 7,
+      "payload_bytes": 1737344
+    },
+    {
+      "samples_us": [
+        88.328099809587,
+        87.77040056884289,
+        87.77948096394539
+      ],
+      "median_us": 87.77948096394539,
+      "repeats_per_sample": 10,
+      "graph": true,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "vocab_all_gather",
+      "logical_device": 1,
+      "rows": 7,
+      "payload_bytes": 1737344
+    },
+    {
+      "samples_us": [
+        101.76969226449728,
+        101.29539296030998,
+        101.19390208274126
+      ],
+      "median_us": 101.29539296030998,
+      "repeats_per_sample": 10,
+      "graph": false,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "vocab_all_gather",
+      "logical_device": 1,
+      "rows": 8,
+      "payload_bytes": 1985536
+    },
+    {
+      "samples_us": [
+        99.4330970570445,
+        98.99269789457321,
+        99.15600530803204
+      ],
+      "median_us": 99.15600530803204,
+      "repeats_per_sample": 10,
+      "graph": true,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "vocab_all_gather",
+      "logical_device": 1,
+      "rows": 8,
+      "payload_bytes": 1985536
+    },
+    {
+      "samples_us": [
+        182.57549963891506,
+        181.65081273764372,
+        181.41590990126133
+      ],
+      "median_us": 181.65081273764372,
+      "repeats_per_sample": 10,
+      "graph": false,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "vocab_all_gather",
+      "logical_device": 1,
+      "rows": 15,
+      "payload_bytes": 3722880
+    },
+    {
+      "samples_us": [
+        180.05641177296638,
+        179.6291209757328,
+        179.87629398703575
+      ],
+      "median_us": 179.87629398703575,
+      "repeats_per_sample": 10,
+      "graph": true,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "vocab_all_gather",
+      "logical_device": 1,
+      "rows": 15,
+      "payload_bytes": 3722880
+    },
+    {
+      "samples_us": [
+        194.20559983700514,
+        193.52850504219532,
+        195.43119706213474
+      ],
+      "median_us": 194.20559983700514,
+      "repeats_per_sample": 10,
+      "graph": false,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "vocab_all_gather",
+      "logical_device": 1,
+      "rows": 16,
+      "payload_bytes": 3971072
+    },
+    {
+      "samples_us": [
+        191.3476036861539,
+        191.31870940327644,
+        191.39170181006193
+      ],
+      "median_us": 191.3476036861539,
+      "repeats_per_sample": 10,
+      "graph": true,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "vocab_all_gather",
+      "logical_device": 1,
+      "rows": 16,
+      "payload_bytes": 3971072
+    }
+  ],
+  "limits": [
+    "balanced synthetic arrivals; no model peer-wait attribution",
+    "graph batches aggregate 10/20 collectives; not single-call model graph latency",
+    "all-reduce copy uses persistent output; allocator cost excluded"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "profile": "baseline_PIECEWISE_fresh",
+  "measured_samples": 3,
+  "prompt_sha256": "122dab552738423ce9ceef0667c4c0820aaf4ec8322f26c18227b9ebe9e04073",
+  "medians": {
+    "ttft_ms": 162.96185296960175,
+    "tpot_ms": 11.190384662911004,
+    "total_ms": 3016.4453559555113
+  }
+}

@@ -1,0 +1,34 @@
+/workspace/preparation/vllm-archive-20261009/vllm/__init__.py:7: RuntimeWarning: Failed to read commit hash:
+No module named 'vllm._version'
+  from .version import __version__, __version_tuple__  # isort:skip
+/opt/venv/lib/python3.12/site-packages/torch/xpu/__init__.py:251: UserWarning: Can't initialize Level Zero Sysman
+  return _enum_zes_device_infos(visible_mask)
+/opt/venv/lib/python3.12/site-packages/torch/xpu/__init__.py:278: UserWarning: XPU device count is zero! (Triggered internally at /__w/pytorch/pytorch/c10/xpu/XPUFunctions.cpp:113.)
+  count = torch._C._xpu_getDeviceCount() if zes_count < 0 else zes_count
+W1009 03:32:44.519000 6144 torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1009 03:32:44.520000 6144 torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1009 03:32:44.520000 6144 torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+Running 61 items in this shard
+.......................................................ss....            [100%]
+=============================== warnings summary ===============================
+../../../opt/venv/lib/python3.12/site-packages/torch/xpu/__init__.py:251
+../../../opt/venv/lib/python3.12/site-packages/torch/xpu/__init__.py:251
+  /opt/venv/lib/python3.12/site-packages/torch/xpu/__init__.py:251: UserWarning: Can't initialize Level Zero Sysman
+    return _enum_zes_device_infos(visible_mask)
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+
+../../../opt/venv/lib/python3.12/site-packages/astor/op_util.py:92
+  /opt/venv/lib/python3.12/site-packages/astor/op_util.py:92: DeprecationWarning: ast.Num is deprecated and will be removed in Python 3.14; use ast.Constant instead
+    precedence_data = dict((getattr(ast, x, None), z) for x, y, z in op_data)
+
+tests/compile/backend.py:46
+  /workspace/preparation/vllm-archive-20261009/tests/compile/backend.py:46: PytestCollectionWarning: cannot collect test class 'TestBackend' because it has a __init__ constructor (from: tests/compile/passes/test_xpu_fusion.py)
+    class TestBackend:
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+59 passed, 2 skipped, 121 deselected, 6 warnings in 2.48s

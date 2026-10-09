@@ -1,0 +1,1232 @@
+[
+  {
+    "trace": "bf16_decode_dp0_pp0_tp0_dcp0_ep0_rank0.1791447105340681254.pt.trace.json.gz",
+    "event_count": 106250,
+    "categories": {
+      "": 66,
+      "user_annotation": 536,
+      "cpu_op": 17222,
+      "overhead": 39931,
+      "kernel": 3728,
+      "ac2g": 23979,
+      "xpu_driver": 16199,
+      "xpu_runtime": 3890,
+      "gpu_memcpy": 162,
+      "gpu_user_annotation": 535,
+      "Trace": 2
+    },
+    "operators": {
+      "vllm::gdn_attention_core_xpu": 120,
+      "vllm::xpu_all_reduce_": 243,
+      "_xpu_C::fp8_gemm_w8a16_pair": 3,
+      "_xpu_C::gated_rmsnorm_fp8_gemm": 90,
+      "vllm::xpu_moe_shared_fused_resadd_norm": 120,
+      "_moe_C::router_resadd_norm_gemv_topk_softmax": 120,
+      "_xpu_C::moe_shared_fused_decode_interface": 120,
+      "_xpu_C::resadd_rmsnorm_fp8_gemm_pair": 87,
+      "_xpu_C::resadd_rmsnorm_fp8_gemm": 30,
+      "_xpu_C::qkv_split_norm_rope": 30
+    },
+    "decode_operators_m1": {
+      "vllm::xpu_all_reduce_": 243,
+      "_xpu_C::fp8_gemm_w8a16_pair": 3,
+      "vllm::gdn_attention_core_xpu": 90,
+      "_xpu_C::gated_rmsnorm_fp8_gemm": 90,
+      "vllm::xpu_moe_shared_fused_resadd_norm": 120,
+      "_moe_C::router_resadd_norm_gemv_topk_softmax": 120,
+      "_xpu_C::moe_shared_fused_decode_interface": 120,
+      "_xpu_C::resadd_rmsnorm_fp8_gemm_pair": 87,
+      "_xpu_C::resadd_rmsnorm_fp8_gemm": 30,
+      "_xpu_C::qkv_split_norm_rope": 30
+    },
+    "sample_input_shapes": {
+      "vllm::gdn_attention_core_xpu": [
+        [
+          [
+            4096,
+            16,
+            128
+          ],
+          [
+            4096,
+            16,
+            128
+          ],
+          [
+            4096,
+            6144
+          ],
+          [
+            4096,
+            32
+          ],
+          []
+        ],
+        [
+          [
+            4096,
+            16,
+            128
+          ],
+          [
+            4096,
+            16,
+            128
+          ],
+          [
+            4096,
+            6144
+          ],
+          [
+            4096,
+            32
+          ],
+          []
+        ]
+      ],
+      "vllm::xpu_all_reduce_": [
+        [
+          [
+            1,
+            2048
+          ],
+          []
+        ],
+        [
+          [
+            1,
+            2048
+          ],
+          []
+        ]
+      ],
+      "_xpu_C::fp8_gemm_w8a16_pair": [
+        [
+          [
+            1,
+            2048
+          ],
+          [
+            2048,
+            6144
+          ],
+          [
+            1
+          ],
+          [
+            2048,
+            32
+          ],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1,
+            2048
+          ],
+          [
+            2048,
+            6144
+          ],
+          [
+            1
+          ],
+          [
+            2048,
+            32
+          ],
+          [
+            1
+          ]
+        ]
+      ],
+      "_xpu_C::gated_rmsnorm_fp8_gemm": [
+        [
+          [
+            1,
+            16,
+            128
+          ],
+          [
+            1,
+            16,
+            128
+          ],
+          [
+            128
+          ],
+          [],
+          [
+            2048,
+            2048
+          ],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1,
+            16,
+            128
+          ],
+          [
+            1,
+            16,
+            128
+          ],
+          [
+            128
+          ],
+          [],
+          [
+            2048,
+            2048
+          ],
+          [
+            1
+          ]
+        ]
+      ],
+      "vllm::xpu_moe_shared_fused_resadd_norm": [
+        [
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            2048
+          ],
+          [
+            2048
+          ],
+          [],
+          []
+        ],
+        [
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            2048
+          ],
+          [
+            2048
+          ],
+          [],
+          []
+        ]
+      ],
+      "_moe_C::router_resadd_norm_gemv_topk_softmax": [
+        [
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            2048
+          ],
+          [
+            2048
+          ],
+          [],
+          [
+            256,
+            2048
+          ],
+          [
+            1,
+            256
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            2048
+          ],
+          []
+        ],
+        [
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            2048
+          ],
+          [
+            2048
+          ],
+          [],
+          [
+            256,
+            2048
+          ],
+          [
+            1,
+            256
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            2048
+          ],
+          []
+        ]
+      ],
+      "_xpu_C::moe_shared_fused_decode_interface": [
+        [
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            256,
+            2048,
+            512
+          ],
+          [
+            256
+          ],
+          [
+            256,
+            256,
+            2048
+          ],
+          [
+            256
+          ],
+          [
+            2048,
+            512
+          ],
+          [
+            1
+          ],
+          [
+            256,
+            2048
+          ],
+          [
+            1
+          ],
+          [
+            2048
+          ],
+          [
+            84224
+          ],
+          []
+        ],
+        [
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            256,
+            2048,
+            512
+          ],
+          [
+            256
+          ],
+          [
+            256,
+            256,
+            2048
+          ],
+          [
+            256
+          ],
+          [
+            2048,
+            512
+          ],
+          [
+            1
+          ],
+          [
+            256,
+            2048
+          ],
+          [
+            1
+          ],
+          [
+            2048
+          ],
+          [
+            84224
+          ],
+          []
+        ]
+      ],
+      "_xpu_C::resadd_rmsnorm_fp8_gemm_pair": [
+        [
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            2048
+          ],
+          [
+            2048
+          ],
+          [],
+          [
+            2048,
+            6144
+          ],
+          [
+            1
+          ],
+          [
+            2048,
+            32
+          ],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            2048
+          ],
+          [
+            2048
+          ],
+          [],
+          [
+            2048,
+            6144
+          ],
+          [
+            1
+          ],
+          [
+            2048,
+            32
+          ],
+          [
+            1
+          ]
+        ]
+      ],
+      "_xpu_C::resadd_rmsnorm_fp8_gemm": [
+        [
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            2048
+          ],
+          [
+            2048
+          ],
+          [],
+          [
+            2048,
+            4608
+          ],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            2048
+          ],
+          [
+            2048
+          ],
+          [],
+          [
+            2048,
+            4608
+          ],
+          [
+            1
+          ]
+        ]
+      ],
+      "_xpu_C::qkv_split_norm_rope": [
+        [
+          [
+            1,
+            4608
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            256
+          ],
+          [
+            256
+          ],
+          [
+            1048576,
+            64
+          ],
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            256
+          ],
+          [
+            1,
+            2048
+          ],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          []
+        ],
+        [
+          [
+            1,
+            4608
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            256
+          ],
+          [
+            256
+          ],
+          [
+            1048576,
+            64
+          ],
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            256
+          ],
+          [
+            1,
+            2048
+          ],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          []
+        ]
+      ]
+    },
+    "native_kernels": {
+      "vllm::moe::router_kernel<1, 16, true, sycl::_V1::ext::oneapi::bfloat16>": 120,
+      "moe_shared_fused::SpMapName<int>": 120,
+      "moe_shared_fused::SpGatherName<cutlass::bfloat16_t>": 120,
+      "moe_shared_fused::SpGemmName<MoE::w8a16_policy_m_8, false, cutlass::bfloat16_t>": 240,
+      "moe_shared_fused::SpSiluMulName<cutlass::bfloat16_t>": 120,
+      "moe_shared_fused::SpFinalizeName<cutlass::bfloat16_t>": 120,
+      "vllm::fp8_gemv::ResAddNormGemvRegKernel<4, 2, 8, sycl::_V1::ext::oneapi::bfloat16>": 87,
+      "vllm::fp8_gemv::GatedNormGemvRegKernel<8, 4, 2, sycl::_V1::ext::oneapi::bfloat16>": 90,
+      "vllm::fp8_gemv::ResAddNormGemvRegKernel<4, 1, 8, sycl::_V1::ext::oneapi::bfloat16>": 30,
+      "vllm::qkv_split_norm_rope_kernel<sycl::_V1::ext::oneapi::bfloat16, 256>": 30,
+      "vllm::fp8_gemv::Fp8GemvKernel<1, 4, 1, 1, sycl::_V1::ext::oneapi::bfloat16>": 30,
+      "vllm::fp8_gemv::Fp8GemvKernel<1, 4, 1, 2, sycl::_V1::ext::oneapi::bfloat16>": 3
+    }
+  },
+  {
+    "trace": "bf16_decode_dp0_pp0_tp1_dcp0_ep1_rank1.1791447105308126461.pt.trace.json.gz",
+    "event_count": 108020,
+    "categories": {
+      "": 66,
+      "user_annotation": 536,
+      "cpu_op": 17222,
+      "overhead": 41749,
+      "xpu_driver": 16194,
+      "ac2g": 23974,
+      "xpu_runtime": 3890,
+      "gpu_memcpy": 162,
+      "kernel": 3728,
+      "gpu_user_annotation": 497,
+      "Trace": 2
+    },
+    "operators": {
+      "vllm::gdn_attention_core_xpu": 120,
+      "vllm::xpu_all_reduce_": 243,
+      "_xpu_C::fp8_gemm_w8a16_pair": 3,
+      "_xpu_C::gated_rmsnorm_fp8_gemm": 90,
+      "vllm::xpu_moe_shared_fused_resadd_norm": 120,
+      "_moe_C::router_resadd_norm_gemv_topk_softmax": 120,
+      "_xpu_C::moe_shared_fused_decode_interface": 120,
+      "_xpu_C::resadd_rmsnorm_fp8_gemm_pair": 87,
+      "_xpu_C::resadd_rmsnorm_fp8_gemm": 30,
+      "_xpu_C::qkv_split_norm_rope": 30
+    },
+    "decode_operators_m1": {
+      "vllm::xpu_all_reduce_": 243,
+      "_xpu_C::fp8_gemm_w8a16_pair": 3,
+      "vllm::gdn_attention_core_xpu": 90,
+      "_xpu_C::gated_rmsnorm_fp8_gemm": 90,
+      "vllm::xpu_moe_shared_fused_resadd_norm": 120,
+      "_moe_C::router_resadd_norm_gemv_topk_softmax": 120,
+      "_xpu_C::moe_shared_fused_decode_interface": 120,
+      "_xpu_C::resadd_rmsnorm_fp8_gemm_pair": 87,
+      "_xpu_C::resadd_rmsnorm_fp8_gemm": 30,
+      "_xpu_C::qkv_split_norm_rope": 30
+    },
+    "sample_input_shapes": {
+      "vllm::gdn_attention_core_xpu": [
+        [
+          [
+            4096,
+            16,
+            128
+          ],
+          [
+            4096,
+            16,
+            128
+          ],
+          [
+            4096,
+            6144
+          ],
+          [
+            4096,
+            32
+          ],
+          []
+        ],
+        [
+          [
+            4096,
+            16,
+            128
+          ],
+          [
+            4096,
+            16,
+            128
+          ],
+          [
+            4096,
+            6144
+          ],
+          [
+            4096,
+            32
+          ],
+          []
+        ]
+      ],
+      "vllm::xpu_all_reduce_": [
+        [
+          [
+            1,
+            2048
+          ],
+          []
+        ],
+        [
+          [
+            1,
+            2048
+          ],
+          []
+        ]
+      ],
+      "_xpu_C::fp8_gemm_w8a16_pair": [
+        [
+          [
+            1,
+            2048
+          ],
+          [
+            2048,
+            6144
+          ],
+          [
+            1
+          ],
+          [
+            2048,
+            32
+          ],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1,
+            2048
+          ],
+          [
+            2048,
+            6144
+          ],
+          [
+            1
+          ],
+          [
+            2048,
+            32
+          ],
+          [
+            1
+          ]
+        ]
+      ],
+      "_xpu_C::gated_rmsnorm_fp8_gemm": [
+        [
+          [
+            1,
+            16,
+            128
+          ],
+          [
+            1,
+            16,
+            128
+          ],
+          [
+            128
+          ],
+          [],
+          [
+            2048,
+            2048
+          ],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1,
+            16,
+            128
+          ],
+          [
+            1,
+            16,
+            128
+          ],
+          [
+            128
+          ],
+          [],
+          [
+            2048,
+            2048
+          ],
+          [
+            1
+          ]
+        ]
+      ],
+      "vllm::xpu_moe_shared_fused_resadd_norm": [
+        [
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            2048
+          ],
+          [
+            2048
+          ],
+          [],
+          []
+        ],
+        [
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            2048
+          ],
+          [
+            2048
+          ],
+          [],
+          []
+        ]
+      ],
+      "_moe_C::router_resadd_norm_gemv_topk_softmax": [
+        [
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            2048
+          ],
+          [
+            2048
+          ],
+          [],
+          [
+            256,
+            2048
+          ],
+          [
+            1,
+            256
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            2048
+          ],
+          []
+        ],
+        [
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            2048
+          ],
+          [
+            2048
+          ],
+          [],
+          [
+            256,
+            2048
+          ],
+          [
+            1,
+            256
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            2048
+          ],
+          []
+        ]
+      ],
+      "_xpu_C::moe_shared_fused_decode_interface": [
+        [
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            256,
+            2048,
+            512
+          ],
+          [
+            256
+          ],
+          [
+            256,
+            256,
+            2048
+          ],
+          [
+            256
+          ],
+          [
+            2048,
+            512
+          ],
+          [
+            1
+          ],
+          [
+            256,
+            2048
+          ],
+          [
+            1
+          ],
+          [
+            2048
+          ],
+          [
+            84224
+          ],
+          []
+        ],
+        [
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            256,
+            2048,
+            512
+          ],
+          [
+            256
+          ],
+          [
+            256,
+            256,
+            2048
+          ],
+          [
+            256
+          ],
+          [
+            2048,
+            512
+          ],
+          [
+            1
+          ],
+          [
+            256,
+            2048
+          ],
+          [
+            1
+          ],
+          [
+            2048
+          ],
+          [
+            84224
+          ],
+          []
+        ]
+      ],
+      "_xpu_C::resadd_rmsnorm_fp8_gemm_pair": [
+        [
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            2048
+          ],
+          [
+            2048
+          ],
+          [],
+          [
+            2048,
+            6144
+          ],
+          [
+            1
+          ],
+          [
+            2048,
+            32
+          ],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            2048
+          ],
+          [
+            2048
+          ],
+          [],
+          [
+            2048,
+            6144
+          ],
+          [
+            1
+          ],
+          [
+            2048,
+            32
+          ],
+          [
+            1
+          ]
+        ]
+      ],
+      "_xpu_C::resadd_rmsnorm_fp8_gemm": [
+        [
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            2048
+          ],
+          [
+            2048
+          ],
+          [],
+          [
+            2048,
+            4608
+          ],
+          [
+            1
+          ]
+        ],
+        [
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            2048
+          ],
+          [
+            2048
+          ],
+          [],
+          [
+            2048,
+            4608
+          ],
+          [
+            1
+          ]
+        ]
+      ],
+      "_xpu_C::qkv_split_norm_rope": [
+        [
+          [
+            1,
+            4608
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            256
+          ],
+          [
+            256
+          ],
+          [
+            1048576,
+            64
+          ],
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            256
+          ],
+          [
+            1,
+            2048
+          ],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          []
+        ],
+        [
+          [
+            1,
+            4608
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            256
+          ],
+          [
+            256
+          ],
+          [
+            1048576,
+            64
+          ],
+          [
+            1,
+            2048
+          ],
+          [
+            1,
+            256
+          ],
+          [
+            1,
+            2048
+          ],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          []
+        ]
+      ]
+    },
+    "native_kernels": {
+      "vllm::fp8_gemv::Fp8GemvKernel<1, 4, 1, 2, sycl::_V1::ext::oneapi::bfloat16>": 3,
+      "vllm::fp8_gemv::GatedNormGemvRegKernel<8, 4, 2, sycl::_V1::ext::oneapi::bfloat16>": 90,
+      "vllm::fp8_gemv::ResAddNormGemvRegKernel<4, 2, 8, sycl::_V1::ext::oneapi::bfloat16>": 87,
+      "vllm::fp8_gemv::ResAddNormGemvRegKernel<4, 1, 8, sycl::_V1::ext::oneapi::bfloat16>": 30,
+      "vllm::fp8_gemv::Fp8GemvKernel<1, 4, 1, 1, sycl::_V1::ext::oneapi::bfloat16>": 30,
+      "vllm::moe::router_kernel<1, 16, true, sycl::_V1::ext::oneapi::bfloat16>": 120,
+      "moe_shared_fused::SpMapName<int>": 120,
+      "moe_shared_fused::SpGatherName<cutlass::bfloat16_t>": 120,
+      "moe_shared_fused::SpGemmName<MoE::w8a16_policy_m_8, false, cutlass::bfloat16_t>": 240,
+      "moe_shared_fused::SpSiluMulName<cutlass::bfloat16_t>": 120,
+      "moe_shared_fused::SpFinalizeName<cutlass::bfloat16_t>": 120,
+      "vllm::qkv_split_norm_rope_kernel<sycl::_V1::ext::oneapi::bfloat16, 256>": 30
+    }
+  }
+]

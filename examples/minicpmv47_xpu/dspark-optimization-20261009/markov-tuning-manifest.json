@@ -1,0 +1,23 @@
+{
+  "namespace": "vllm::fp8_markov_tuning",
+  "policies": {
+    "0": "legacy KS4/RG1",
+    "1": "KS1/RG4",
+    "2": "KS1/RG8",
+    "3": "KS1/RG16",
+    "4": "KS2/RG4"
+  },
+  "sources": {
+    "/workspace/preparation/kernels-bf16/csrc/xpu/gemv/fp8_gemv_interface.h": "092e6098fd7053d2a478e4ea446c47f4a20ae887799bd2bb501aeb467acf7e46",
+    "/workspace/preparation/kernels-bf16/csrc/xpu/gemv/xe_2/fp8_gemv.hpp": "827ba32973179c9154546b2370034e7b6c6c589e9108682d9670f5dbb812e60d",
+    "/workspace/preparation/kernels-bf16/csrc/xpu/gemv/xe_2/fp8_gemv_xe2.cpp": "420a700aefce89a2e123c4687e2d1f2c52a17c496b1c03f3903f33c071946281"
+  },
+  "generated": {
+    "bindings.cpp": "4f60f39964311ffa7c591026bcea3d539cc57b9e78d39fa10b0e1018bfe915a2",
+    "gemv/xe_2/fp8_gemv_xe2.cpp": "69e20715d0a8554d9f865bb03b2ace4675d2cae8594fc49e8bb65035ab1b50ec",
+    "gemv/xe_2/fp8_gemv.hpp": "98d3fb9655896bd80e842e3832e0c61800254ac9cd5c1b794189e8ca126a26e9",
+    "gemv/fp8_gemv_interface.h": "3a73e230dd2de77e3b75cb22eedb25b3261b10b8b0a73adb20e88f361bb5c25e"
+  },
+  "library_sha256": "154d7893cff1c4f2d5a667b35427546a099f2d7bb998c918fb2a14e3cbfdfebd",
+  "scope": "M1/K256/N>=65536 only; other policies unchanged; isolated op, no wheel/version changes"
+}

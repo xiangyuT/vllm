@@ -1,0 +1,17 @@
+{
+  "profile": "k7_FULL",
+  "measured_samples": 3,
+  "prompt_sha256": "122dab552738423ce9ceef0667c4c0820aaf4ec8322f26c18227b9ebe9e04073",
+  "medians": {
+    "ttft_ms": 169.47867814451456,
+    "tpot_ms": 9.18232461108881,
+    "total_ms": 2511.3770430907607
+  },
+  "speculative": {
+    "accepted": 348,
+    "proposed": 2933,
+    "steps": 419,
+    "acceptance_rate": 0.11864984657347426,
+    "mean_acceptance_length": 1.8305489260143197
+  }
+}

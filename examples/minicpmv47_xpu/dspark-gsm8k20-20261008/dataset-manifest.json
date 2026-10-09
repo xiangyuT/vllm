@@ -1,0 +1,38 @@
+{
+  "dataset_urls": {
+    "train.jsonl": "https://vllm-public-assets.s3.us-west-2.amazonaws.com/ci-datasets/gsm8k/train.jsonl",
+    "test.jsonl": "https://vllm-public-assets.s3.us-west-2.amazonaws.com/ci-datasets/gsm8k/test.jsonl"
+  },
+  "dataset_sha256": {
+    "train.jsonl": "17f347dc51477c50d4efb83959dbb7c56297aba886e5544ee2aaed3024813465",
+    "test.jsonl": "3730d312f6e3440559ace48831e51066acaca737f6eabec99bccb9e4b3c39d14"
+  },
+  "selected_test_indices": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
+  ],
+  "questions_sha256": "d2ebe0a7e8c6ff45b141359867f0717dd20f258463e60b586f313e676f6d5dad",
+  "canonical_helper_sha256": "e7fc452bf6fdc1ee62131a0871918a19df22b89f400384127a07e52b27061cea",
+  "scoring": "unmodified upstream get_answer_value: remove commas, parse last integer; exact equality to reference",
+  "num_shots": 5,
+  "num_questions": 20,
+  "gpu_execution": false
+}

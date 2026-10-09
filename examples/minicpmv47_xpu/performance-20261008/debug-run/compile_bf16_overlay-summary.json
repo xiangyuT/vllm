@@ -1,0 +1,10 @@
+{
+  "profile": "compile_bf16_overlay",
+  "measured_samples": 3,
+  "prompt_sha256": "b3d6cc02119ef32717118e1850a6bbd7b2e2ef0ee9bc056415ac0caaa8463a46",
+  "medians": {
+    "ttft_ms": 2787.0593809057027,
+    "tpot_ms": 22.967981313101934,
+    "total_ms": 14522.714803926647
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "base_revision": "95307ac6d4cd8be2c1e38f236e9104c569af9025",
+  "files": {
+    "vllm/compilation/passes/fusion/xpu_fusion.py": {
+      "before": "13537dd290843d11edf4ce7a891e807b8997e9b92ec1ddf56e5f3a36365ceedc",
+      "after": "6e5f2501d29ff363c46a7f9fee9e961c51b95905272e0dad811bab5109b108c4"
+    },
+    "tests/compile/passes/test_xpu_fusion.py": {
+      "before": "f0e200b133996e1146b3d1f8df2ad03298e5c2944da17791f44ad916df0eb6c6",
+      "after": "e4f4a4047de91904340d375f633f8f89b33beba6352e5a20bdb72a7f002e7575"
+    }
+  },
+  "cpu_regression_tests": 2,
+  "native_binaries_changed": false,
+  "commit_created": false
+}

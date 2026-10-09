@@ -1,0 +1,28 @@
+{
+  "base_revision": "95307ac6d4cd8be2c1e38f236e9104c569af9025",
+  "scope": "V2 dummy warmup/capture classification only; real request path unchanged",
+  "files": {
+    "vllm/v1/worker/gpu/input_batch.py": {
+      "before_sha256": "96163c486368f2cf0e539fe68eaa06f4df3ac814da8f7a92af2b04242e01bc6d",
+      "after_sha256": "b8850d8ba2af3da52758a677b71d472551f6800ce9e5278c3c116f85d92d2b27"
+    },
+    "vllm/v1/worker/gpu/model_runner.py": {
+      "before_sha256": "48ae64b57dae7e26599df3e2a967a5f3ac0ad91861f7b879da989da0f5c67cf3",
+      "after_sha256": "2d1081e0613b70a8deab1a1e9c9652a040503f1926ed48c90049e32907f49cd7"
+    },
+    "tests/v1/worker/test_gpu_input_batch_v2.py": {
+      "before_sha256": "3adf653dc89791b3ff431ec6542a4508dc946bbeb401a911d999dda6dcb532cd",
+      "after_sha256": "6d91fe87e4d9338029039ba43878e329713eaa0cd1184a1c4605015a9e2d118e"
+    },
+    "tests/v1/worker/test_mamba_hybrid_model_state.py": {
+      "before_sha256": "e3d26931db0157de946a053b02243470fc6b6ce3b5c618b60044e829f38bf1fb",
+      "after_sha256": "2050ede1fb767dcde5d63851de030cd1f5e2caf0e66ed97580bd1c5ca82fb1d0"
+    }
+  },
+  "checks": {
+    "CPU": "6 passed, 24 deselected",
+    "ruff": "passed",
+    "git_diff_check": "passed"
+  },
+  "native_binary_changed": false
+}

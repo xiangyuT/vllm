@@ -1,0 +1,9 @@
+{
+  "server_log": "dspark-gpu01-20261008/performance-baseline_FULL_retry.log",
+  "replay_after_original_call_return": true,
+  "lines": [
+    "MINICPM FULL GRAPH REPLAY ModelCudaGraphManager rank 1 descriptor BatchExecutionDescriptor(cg_mode=<CUDAGraphMode.FULL: 2>, num_tokens=1, num_reqs=1, uniform_token_count=1, max_query_len=None, num_active_loras=0, num_ubatches=1) graph_type XPUGraph captured_graphs 1",
+    "MINICPM FULL GRAPH REPLAY ModelCudaGraphManager rank 0 descriptor BatchExecutionDescriptor(cg_mode=<CUDAGraphMode.FULL: 2>, num_tokens=1, num_reqs=1, uniform_token_count=1, max_query_len=None, num_active_loras=0, num_ubatches=1) graph_type XPUGraph captured_graphs 1"
+  ],
+  "profiler_started": false
+}

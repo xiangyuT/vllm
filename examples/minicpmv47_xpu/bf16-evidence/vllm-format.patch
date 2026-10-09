@@ -1,0 +1,34 @@
+--- a/vllm/compilation/passes/fusion/xpu_fusion.py
++++ b/vllm/compilation/passes/fusion/xpu_fusion.py
+@@ -249,7 +249,9 @@
+         ):
+             return None
+         for input_node in (x, residual):
+-            value = input_node.meta.get("val") if isinstance(input_node, fx.Node) else None
++            value = (
++                input_node.meta.get("val") if isinstance(input_node, fx.Node) else None
++            )
+             if not (
+                 isinstance(value, torch.Tensor)
+                 and value.dtype == hidden_val.dtype
+--- a/tests/compile/passes/test_xpu_fusion.py
++++ b/tests/compile/passes/test_xpu_fusion.py
+@@ -512,10 +512,16 @@
+     assert _reason(_base_runner(dtype=dtype)) is None
+ 
+ 
+-@pytest.mark.parametrize("path", ["gate.weight", "shared_experts._layer.expert_gate.weight"])
++@pytest.mark.parametrize(
++    "path", ["gate.weight", "shared_experts._layer.expert_gate.weight"]
++)
+ def test_bf16_runner_rejects_fp16_gate(fake_kernel_interface, path):
+     runner = _base_runner(dtype=torch.bfloat16)
+-    old = runner.gate.weight if path == "gate.weight" else runner.shared_experts._layer.expert_gate.weight
++    old = (
++        runner.gate.weight
++        if path == "gate.weight"
++        else runner.shared_experts._layer.expert_gate.weight
++    )
+     _set(runner, path, old.to(torch.float16))
+     assert _reason(runner) is not None
+ 

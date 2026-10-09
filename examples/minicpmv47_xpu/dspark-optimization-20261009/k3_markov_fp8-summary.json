@@ -1,0 +1,17 @@
+{
+  "profile": "k3_markov_fp8",
+  "measured_samples": 3,
+  "prompt_sha256": "122dab552738423ce9ceef0667c4c0820aaf4ec8322f26c18227b9ebe9e04073",
+  "medians": {
+    "ttft_ms": 164.05105800367892,
+    "tpot_ms": 9.01503568953451,
+    "total_ms": 2463.028598111123
+  },
+  "speculative": {
+    "accepted": 246,
+    "proposed": 1557,
+    "steps": 519,
+    "acceptance_rate": 0.1579961464354528,
+    "mean_acceptance_length": 1.4739884393063583
+  }
+}

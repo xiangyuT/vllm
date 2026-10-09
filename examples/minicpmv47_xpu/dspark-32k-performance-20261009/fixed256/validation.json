@@ -1,0 +1,46 @@
+{
+  "evidence_class": "development_real_text_32k_fixed256_end_to_end_performance",
+  "profiles": [
+    {
+      "profile": "baseline_FULL",
+      "warmup_and_measured_responses_valid": true,
+      "measured_samples": 3,
+      "output_tokens_all_256": true,
+      "EOS_tokens_suppressed": true
+    },
+    {
+      "profile": "k3_bf16_FULL",
+      "warmup_and_measured_responses_valid": true,
+      "measured_samples": 3,
+      "output_tokens_all_256": true,
+      "EOS_tokens_suppressed": true
+    },
+    {
+      "profile": "k3_heads_fp8_FULL",
+      "warmup_and_measured_responses_valid": true,
+      "measured_samples": 3,
+      "output_tokens_all_256": true,
+      "EOS_tokens_suppressed": true
+    }
+  ],
+  "total_measured_samples": 9,
+  "input_prefix_unchanged": true,
+  "EOS_contract": {
+    "ignore_eos": true,
+    "min_tokens": 256,
+    "max_tokens": 256,
+    "EOS_ids": [
+      248044,
+      248046
+    ]
+  },
+  "GPU_01_released": true,
+  "formal_acceptance": false,
+  "artifacts_sha256": {
+    "PLAN.json": "2f9841f3a5075d1b1dc64855691f7b807d0976def91e44ad10920d76f836ddc5",
+    "comparison.json": "71876974f56c8fe93dd519c5f9067e85bf307607ddd4c987d21966af3445e6a4",
+    "release.json": "f70409540c0329c9664e814ca46469d8d0deadd5439ededab5de34ee6d726289",
+    "run.py": "b9cbfd702c4b1dc33da3da487795630678d0935f10000a6d8c63816f4a7444a5",
+    "report.py": "d63a9209a2b6977d95191be2ae55085c6d34427011b7d2013cf06598806d05bf"
+  }
+}

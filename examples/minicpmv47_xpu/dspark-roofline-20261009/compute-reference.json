@@ -1,0 +1,151 @@
+{
+  "evidence_class": "development_hardware_reference",
+  "identities": [
+    {
+      "logical": 0,
+      "uuid": "868023e2-0000-0000-1800-000000000000",
+      "name": "Intel(R) Arc(TM) Pro B70 Graphics"
+    },
+    {
+      "logical": 1,
+      "uuid": "868023e2-0000-0000-3600-000000000000",
+      "name": "Intel(R) Arc(TM) Pro B70 Graphics"
+    }
+  ],
+  "seed": 7,
+  "torch": "2.14.0+xpu",
+  "finished_utc": "2026-10-08T21:18:39.520550+00:00",
+  "rows": [
+    {
+      "samples_us": [
+        2033.380651846528,
+        2033.353946171701,
+        2033.3973108790815
+      ],
+      "median_us": 2033.380651846528,
+      "repeats_per_sample": 20,
+      "graph": true,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "stream_copy",
+      "logical_device": 0,
+      "read_plus_write_bytes": 1073741824,
+      "reference_bandwidth_bytes_per_second": 528057460871.83777
+    },
+    {
+      "samples_us": [
+        774.8250965960324,
+        788.2057456299663,
+        794.8308484628797
+      ],
+      "median_us": 788.2057456299663,
+      "repeats_per_sample": 20,
+      "graph": true,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "bf16_gemm_reference",
+      "logical_device": 0,
+      "mnk": [
+        4096,
+        4096,
+        4096
+      ],
+      "weight_stride": [
+        1,
+        4096
+      ],
+      "flops_2mnk": 137438953472,
+      "reference_flop_per_second": 174369387985307.28
+    },
+    {
+      "samples_us": [
+        217.08720596507192,
+        217.19569340348244,
+        216.97995252907276
+      ],
+      "median_us": 217.08720596507192,
+      "repeats_per_sample": 20,
+      "graph": true,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "bf16_gemm_reference",
+      "logical_device": 0,
+      "mnk": [
+        1,
+        248192,
+        256
+      ],
+      "weight_stride": [
+        1,
+        256
+      ],
+      "flops_2mnk": 127074304,
+      "reference_flop_per_second": 585360631618.4545
+    },
+    {
+      "samples_us": [
+        0.2544489689171314,
+        0.11165393516421318,
+        0.10574003681540489
+      ],
+      "median_us": 0.11165393516421318,
+      "repeats_per_sample": 20,
+      "graph": true,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "stream_copy",
+      "logical_device": 1,
+      "read_plus_write_bytes": 1073741824,
+      "reference_bandwidth_bytes_per_second": 9616694856485014.0
+    },
+    {
+      "samples_us": [
+        0.22255117073655128,
+        0.11684605851769447,
+        0.11230586096644402
+      ],
+      "median_us": 0.11684605851769447,
+      "repeats_per_sample": 20,
+      "graph": true,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "bf16_gemm_reference",
+      "logical_device": 1,
+      "mnk": [
+        4096,
+        4096,
+        4096
+      ],
+      "weight_stride": [
+        1,
+        4096
+      ],
+      "flops_2mnk": 137438953472,
+      "reference_flop_per_second": 1.1762395344399834e+18
+    },
+    {
+      "samples_us": [
+        0.18444843590259552,
+        0.13255048543214798,
+        0.12936070561408997
+      ],
+      "median_us": 0.13255048543214798,
+      "repeats_per_sample": 20,
+      "graph": true,
+      "time_boundary": "wall time; synchronized block / repeats",
+      "kind": "bf16_gemm_reference",
+      "logical_device": 1,
+      "mnk": [
+        1,
+        248192,
+        256
+      ],
+      "weight_stride": [
+        1,
+        256
+      ],
+      "flops_2mnk": 127074304,
+      "reference_flop_per_second": 958686070335433.0
+    }
+  ],
+  "limits": [
+    "attainable references, not measured instruction/DRAM counters",
+    "three measured blocks after warmup; no model latency samples",
+    "reference GEMM ceiling is shape dependent; ratio above one is not clipped"
+  ]
+}

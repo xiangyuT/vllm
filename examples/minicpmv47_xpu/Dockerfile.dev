@@ -1,0 +1,27 @@
+FROM vllm/vllm-openai-xpu@sha256:95ac815038c4b3537b173798bfe3b89bdf525a52bd653cd14d4deb01f1062be7
+
+# Add the compiler only; keep the upstream Python environment and GPU drivers.
+USER root
+RUN curl --fail --silent --show-error --location --retry 3 \
+      --connect-timeout 15 --max-time 120 \
+      https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
+      | gpg --dearmor --output /usr/share/keyrings/minicpm-oneapi.gpg \
+    && printf '%s\n' \
+      'deb [signed-by=/usr/share/keyrings/minicpm-oneapi.gpg] https://apt.repos.intel.com/oneapi all main' \
+      > /etc/apt/sources.list.d/minicpm-oneapi.list \
+    && apt-get update \
+    && apt-get install --yes --no-install-recommends \
+      intel-oneapi-compiler-dpcpp-cpp-2026.1=2026.1.1-325 \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV SYCL_HOME=/opt/intel/oneapi/compiler/2026.1
+ENV PATH=/opt/intel/oneapi/compiler/2026.1/bin:${PATH}
+ENV CC=/opt/intel/oneapi/compiler/2026.1/bin/icx
+ENV CXX=/opt/intel/oneapi/compiler/2026.1/bin/icpx
+
+LABEL codex.task="minicpm-v47-main-prep-20261008" \
+      codex.phase="cpu-preparation" \
+      codex.base-image="sha256:d03c3b8fd3c522ef6bc30a5d81848dacdd5a688bb27e79553a4e79ff5f7e87c5"
+WORKDIR /workspace/preparation
+ENTRYPOINT ["/bin/bash"]
+CMD ["-lc", "exec sleep infinity"]

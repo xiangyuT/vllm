@@ -1,0 +1,25 @@
+{
+  "requests": 20,
+  "steps": 946,
+  "accepted": 1914,
+  "proposed": 2838,
+  "acceptance_rate": 0.6744186046511628,
+  "mean_acceptance_length": 3.0232558139534884,
+  "acceptance_histogram": [
+    168,
+    126,
+    168,
+    484
+  ],
+  "output_tokens": 2846,
+  "length_truncations": 0,
+  "prefix_survival_rates": [
+    0.8224101479915433,
+    0.6892177589852009,
+    0.5116279069767442
+  ],
+  "correct": 18,
+  "num_questions": 20,
+  "meets_70_percent_target": false,
+  "latency_claim": false
+}

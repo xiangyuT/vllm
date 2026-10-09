@@ -1,0 +1,10 @@
+{
+  "runtime-source-manifest.json": {
+    "path": "dspark-iteration-20261009/runtime-source-manifest.json",
+    "sha256": "4d8343f17fc652722ffc868171fa572878d843cceb403404b80cdf21f08871a7"
+  },
+  "implementation-manifest.json": {
+    "path": "dspark-iteration-20261009/implementation-manifest.json",
+    "sha256": "106deaa3592e061986a166f56719728e031d47de24a6400ab76ee0cbdf28b0e5"
+  }
+}

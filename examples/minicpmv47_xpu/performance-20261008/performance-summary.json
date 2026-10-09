@@ -1,0 +1,97 @@
+{
+  "profiles": {
+    "eager": {
+      "profile": "eager",
+      "measured_samples": 3,
+      "prompt_sha256": "b3d6cc02119ef32717118e1850a6bbd7b2e2ef0ee9bc056415ac0caaa8463a46",
+      "medians": {
+        "ttft_ms": 2756.1170940753073,
+        "tpot_ms": 50.17125389790217,
+        "total_ms": 28393.627835903317
+      }
+    },
+    "compile": {
+      "profile": "compile",
+      "measured_samples": 3,
+      "prompt_sha256": "b3d6cc02119ef32717118e1850a6bbd7b2e2ef0ee9bc056415ac0caaa8463a46",
+      "medians": {
+        "ttft_ms": 2805.502688046545,
+        "tpot_ms": 53.99761192724765,
+        "total_ms": 30398.282382870093
+      }
+    },
+    "compile_bf16_overlay": {
+      "profile": "compile_bf16_overlay",
+      "measured_samples": 3,
+      "prompt_sha256": "b3d6cc02119ef32717118e1850a6bbd7b2e2ef0ee9bc056415ac0caaa8463a46",
+      "medians": {
+        "ttft_ms": 2769.7135750204325,
+        "tpot_ms": 17.723915640104366,
+        "total_ms": 11826.634467113763
+      }
+    }
+  },
+  "historical": {
+    "source": "/home/intel/xiangyu/copilot_workspace/vllm-minicpmv47-xpu-v030/MINICPM_V47_XPU_SUPPORT_STATUS.md",
+    "source_sha256": "0ec9c322f9d8511657d3d262c5f96e8e0423a7600a5d298f71b808849d2050a9",
+    "measured_date": "2026-09-28",
+    "physical_gpus": [
+      0,
+      1
+    ],
+    "base_vllm_revision": "ced6857afa0ea7b2e3f0846a62e1394e90f15607",
+    "integrated_vllm_revision": "f3b9e6bea5e4a64f08db3d316506881f00bfd0bc",
+    "transformers": "5.16.1",
+    "prompt_sha256": "e9da807d9b42f7c01fc65c0bde50756656a56db1b96085af7bf022848e5b55ea",
+    "eager": {
+      "medians": {
+        "ttft_ms": 2719.789,
+        "tpot_ms": 51.928,
+        "total_ms": 29254.829
+      },
+      "samples": [
+        {
+          "ttft_ms": 2719.789,
+          "tpot_ms": 51.928,
+          "total_ms": 29254.829
+        },
+        {
+          "ttft_ms": 2719.122,
+          "tpot_ms": 52.436,
+          "total_ms": 29514.128
+        },
+        {
+          "ttft_ms": 2724.66,
+          "tpot_ms": 51.873,
+          "total_ms": 29231.516
+        }
+      ]
+    },
+    "compile": {
+      "medians": {
+        "ttft_ms": 2775.341,
+        "tpot_ms": 55.641,
+        "total_ms": 31209.444
+      },
+      "samples": [
+        {
+          "ttft_ms": 2777.033,
+          "tpot_ms": 55.641,
+          "total_ms": 31209.444
+        },
+        {
+          "ttft_ms": 2775.341,
+          "tpot_ms": 56.509,
+          "total_ms": 31651.255
+        },
+        {
+          "ttft_ms": 2774.535,
+          "tpot_ms": 55.631,
+          "total_ms": 31202.114
+        }
+      ]
+    }
+  },
+  "data_validation": "15 requests: HTTP200, 32768/512, 512 nonempty SSE chunks; medians independently recalculated",
+  "trace_validation": "both ranks: 3 M1 decode steps with native BF16 kernel events"
+}

@@ -1,0 +1,40 @@
+{
+  "base_revision": "95307ac6d4cd8be2c1e38f236e9104c569af9025",
+  "working_branch": "dev/minicpmv47-main-functional-20261008",
+  "upstream_main_revision": "7816afdb259dbb18f9e98d11b05194dd3446d0fa",
+  "upstream_commit_date": "2026-10-08T09:33:41Z",
+  "compared_paths": [
+    "vllm/config/speculative.py",
+    "vllm/config/vllm.py",
+    "vllm/model_executor/models/qwen3_dflash.py",
+    "vllm/model_executor/models/qwen3_dspark.py",
+    "vllm/model_executor/models/registry.py",
+    "vllm/model_executor/models/utils.py",
+    "vllm/model_executor/layers/rotary_embedding",
+    "vllm/v1/worker/gpu/spec_decode",
+    "vllm/v1/worker/gpu/model_runner.py",
+    "vllm/v1/worker/gpu/model_states",
+    "vllm/v1/worker/xpu_worker.py",
+    "vllm/v1/worker/xpu_model_runner.py",
+    "vllm/v1/attention/backends/flash_attn.py",
+    "vllm/platforms/xpu.py",
+    "tests/v1/e2e/spec_decode/acceptance_rates/dspark/test_dspark.py"
+  ],
+  "difference": "Self import moved from typing_extensions to typing; no DSpark behavior change in these paths",
+  "prior_functional_file_hashes_unchanged": 22,
+  "reviewed_file_sha256": {
+    "vllm/config/speculative.py": "6525e3b12489944a364d5d5efecd7c1b09d20ac12294381705e691f2c734d6a1",
+    "vllm/config/vllm.py": "ed223d82b6af71b0d68a9192f0f1e341207e7d3f1d68fc2042d33f8684fc0c33",
+    "vllm/model_executor/models/qwen3_dflash.py": "5375543288e72219abc1fc777219a640f0d173b3e8ac531718d666483a46ea7a",
+    "vllm/model_executor/models/qwen3_dspark.py": "7be21c094a49520c41f418aceea71b338d5e15b14b3ddd052e6d6f7b7ac8ae79",
+    "vllm/model_executor/models/registry.py": "b6212008617c8b66a9cf13c1e54a2fe1e2d90ab43810041472cc25d5523cf7f4",
+    "vllm/model_executor/models/utils.py": "2bdf18121a5e27f65d6c4b130135a2fa0f1d8f355bb26dd36810c9c2a69aa23a",
+    "vllm/v1/worker/gpu/model_runner.py": "48ae64b57dae7e26599df3e2a967a5f3ac0ad91861f7b879da989da0f5c67cf3",
+    "vllm/v1/worker/xpu_worker.py": "7846750f1f5a563257ec785e75dac508894ddd8e5f200a466d0940986ed83213",
+    "vllm/v1/worker/xpu_model_runner.py": "92d06e95c194da7e0152e7ddf2aa14bd00edcd8418abbedfd911921b5c3a6b5d",
+    "vllm/v1/attention/backends/flash_attn.py": "131be4f05c0d35e5b615eb66f32280cffaa4e5794fbe34682580fb5bfe50ce3e",
+    "vllm/platforms/xpu.py": "17ff4f7518bf54783aacec2f5f11c6f6177310f0309f4532a1a1de68752ad944",
+    "tests/v1/e2e/spec_decode/acceptance_rates/dspark/test_dspark.py": "318530ce8d445522ef34fff9f5ddfec4b21f62ec1df993a9a18e9fb002efd02e"
+  },
+  "gpu_execution": false
+}

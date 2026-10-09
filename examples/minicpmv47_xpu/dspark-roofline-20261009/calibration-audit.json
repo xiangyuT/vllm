@@ -1,0 +1,41 @@
+{
+  "selected_compute": "compute-reference2.json",
+  "selected_collectives": [
+    "collective-reference-rank0.json",
+    "collective-reference-rank1.json"
+  ],
+  "excluded_attempts": [
+    {
+      "file": "compute-reference.json",
+      "reason": "rank1 captured empty graph because implicit capture stream was created on rank0; excluded from roofs"
+    },
+    {
+      "file": "container-attempt1.log",
+      "reason": "container entrypoint received sleep binary as shell argument; no GPU work"
+    },
+    {
+      "file": "collective-reference.log",
+      "reason": "no /dev/dri/by-path for oneCCL DRM FD fallback; communicator initialization failed"
+    },
+    {
+      "file": "collective-reference-attempt2.log",
+      "reason": "command launched before replacement container existed; no workload"
+    },
+    {
+      "file": "collective-reference-attempt3.log",
+      "reason": "oneCCL enumerates all DRM FDs; partial device mount left missing nodes"
+    }
+  ],
+  "fixes": [
+    "explicit per-device capture stream",
+    "complete DRM directory mount with ZE_AFFINITY_MASK=0,1 and verified two-device Torch UUIDs"
+  ],
+  "validated": [
+    "three measured blocks per case after warmup",
+    "copy/GEMM outputs finite and expected",
+    "all-reduce results 3 and gathered rank values 1/2",
+    "full model emitted-token/round normalization with terminal clipping"
+  ],
+  "runtime_source_changed": false,
+  "calibration_release": "calibration-release.json"
+}

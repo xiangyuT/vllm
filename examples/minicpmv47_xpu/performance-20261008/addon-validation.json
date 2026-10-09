@@ -1,0 +1,22 @@
+[
+  {
+    "op": "single_gemv",
+    "m": 1,
+    "passed": true
+  },
+  {
+    "op": "oneDNN_fallback",
+    "m": 4,
+    "passed": true
+  },
+  {
+    "op": "qkv_norm_mrope",
+    "m": 1,
+    "passed": true
+  },
+  {
+    "op": "qkv_norm_mrope",
+    "m": 64,
+    "passed": true
+  }
+]

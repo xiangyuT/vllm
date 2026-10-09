@@ -1,0 +1,54 @@
+{
+  "evidence_class": "exploratory_input_acceptance_diagnostic",
+  "scope": "check whether this public novel saturates k3 acceptance; no performance comparison or long-context claim",
+  "device_authorization": "existing user instruction: 使用GPU 01进行开发 完成迭代优化吧; reused for scoped DSpark input tests",
+  "physical_gpus": [
+    0,
+    1
+  ],
+  "expected_sysman_uuid": [
+    "00000000-0000-0018-0000-0000e2238086",
+    "00000000-0000-0036-0000-0000e2238086"
+  ],
+  "expected_pci": [
+    "0000:18:00.0",
+    "0000:36:00.0"
+  ],
+  "source_manifest": "/home/xiangyu/workspace/minicpm-v47-main-prep-20261008/benchmark-inputs/war-and-peace-2600/manifest.json",
+  "body_sha256": "353693ee8384aaba6ae2b78c75936bd668230d3cec8d7ac2c648351204bc1d23",
+  "tokenizer_sha256": "e4608c5d7b3f4f30ba83be16a82cdac856b2e7191d40f0a08cbacc76c2a926ee",
+  "cases_sha256": "b929c266aa4be4b2462c78d4cd851934099a085d98ac0cbf17ddf9f422e2bb9a",
+  "source_cutoff_unit": "model tokenizer tokens, excluding chat template",
+  "sampling": "six nonoverlapping 2048-token windows ending at specified source positions; diagnostic only, not a prefix long-context benchmark",
+  "source_cutoff_positions": [
+    2048,
+    65536,
+    131072,
+    262144,
+    524288,
+    700000
+  ],
+  "modes": [
+    "raw_completion",
+    "chat_continuation"
+  ],
+  "chat_instruction": "Continue the following passage naturally from its endpoint. Output only the continuation, without an introduction or a summary.\n\n",
+  "requests_per_mode": 6,
+  "max_concurrency": 1,
+  "temperature": 0,
+  "seed": 7,
+  "max_tokens": 256,
+  "ignore_eos": false,
+  "min_tokens": 0,
+  "prefix_caching": false,
+  "num_speculative_tokens": 3,
+  "profile": "k3 FULL; main online FP8/BF16; draft BF16 backbone; Markov and draft vocab FP8/BF16 oneDNN",
+  "metrics_mode": "detailed, including per-step accepted/drafted and acceptance histogram",
+  "memory_diagnostic": "exact generated-token prefix match and longest contiguous overlap with the next 512 source tokens; neither is a correctness gate or proof of training membership",
+  "interpretation": "acceptance near 100% is a saturation signal for this k3/profile/task; does not alone prove memorization or invalidate all uses of the corpus",
+  "terminal_clip_limit": "speculative metrics are observed before max_tokens truncation; terminal overshoot retained and identified",
+  "formal_acceptance": false,
+  "latency_claim": false,
+  "previous_results": "retain synthetic and GSM8K results; no response reuse",
+  "future_prefix_test_parameters": "still pending user selection; these short diagnostic windows do not choose them"
+}

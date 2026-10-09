@@ -1,0 +1,74 @@
+{
+  "windows": {
+    "2048": {
+      "requests": 3,
+      "steps": 492,
+      "accepted": 276,
+      "proposed": 1476,
+      "acceptance_rate": 0.18699186991869918,
+      "mean_acceptance_length": 1.5609756097560976,
+      "acceptance_histogram": [
+        312,
+        99,
+        66,
+        15
+      ],
+      "output_tokens": 768,
+      "length_truncations": 3,
+      "prefix_survival_rates": [
+        0.36585365853658536,
+        0.16463414634146342,
+        0.03048780487804878
+      ],
+      "input_tokens": 2082
+    },
+    "8192": {
+      "requests": 3,
+      "steps": 540,
+      "accepted": 225,
+      "proposed": 1620,
+      "acceptance_rate": 0.1388888888888889,
+      "mean_acceptance_length": 1.4166666666666667,
+      "acceptance_histogram": [
+        381,
+        108,
+        36,
+        15
+      ],
+      "output_tokens": 768,
+      "length_truncations": 3,
+      "prefix_survival_rates": [
+        0.29444444444444445,
+        0.09444444444444444,
+        0.027777777777777776
+      ],
+      "input_tokens": 8226
+    },
+    "32768": {
+      "requests": 3,
+      "steps": 603,
+      "accepted": 162,
+      "proposed": 1809,
+      "acceptance_rate": 0.08955223880597014,
+      "mean_acceptance_length": 1.2686567164179103,
+      "acceptance_histogram": [
+        474,
+        99,
+        27,
+        3
+      ],
+      "output_tokens": 768,
+      "length_truncations": 3,
+      "prefix_survival_rates": [
+        0.21393034825870647,
+        0.04975124378109453,
+        0.004975124378109453
+      ],
+      "input_tokens": 32802,
+      "latency_claim": false
+    }
+  },
+  "evidence_class": "same_endpoint_short_context_acceptance_diagnostic",
+  "previous_32768_source": "../chat-template-probe/long-chat_rendered-results.json",
+  "latency_claim": false
+}
