@@ -1,6 +1,0 @@
-{
-  "parent_runner_sha256": "c29e931fb1a1d252882a1a06997519a1221f69da158f8a4e14dc713298ed5b36",
-  "parent_container_id": "19d5b306fdf7063f72ae079e3ba3fdd434cfc592e5b9cef696090cd58aae3239",
-  "source_of_input": "/home/xiangyu/workspace/minicpm-v47-main-prep-20261008/dspark-32k-performance-20261009",
-  "scope": "reuse exact container/venv/cache; write new evidence only in fixed256; change request EOS/length contract"
-}
